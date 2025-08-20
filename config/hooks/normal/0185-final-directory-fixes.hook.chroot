@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# Final Directory Fixes Hook for Nanite Linux AI/ML
+# Ensures all required directories exist before other hooks use them
+
+set -e
+
+echo "I: Creating all required directories for safe hook execution..."
+
+# Create all skeleton directories that hooks might need
+echo "📁 Creating skeleton directory structure..."
+
+# Basic config directories
+mkdir -p /etc/skel/.config/{xfce4,autostart,gtk-3.0}
+mkdir -p /etc/skel/.config/xfce4/{panel,xfconf/xfce-perchannel-xml}
+mkdir -p /etc/skel/.config/{conky,autostart}
+
+# AI/ML project directories  
+mkdir -p /etc/skel/{AI-ML-Projects,AI-ML-Projects/notebooks,AI-ML-Projects/datasets,AI-ML-Projects/models,AI-ML-Projects/scripts}
+mkdir -p /etc/skel/{AI-ML-Learning,AI-ML-Learning/Cheatsheets,AI-ML-Learning/Tutorials,AI-ML-Learning/Papers}
+mkdir -p /etc/skel/{Desktop,Downloads,Documents}
+
+# Mozilla Firefox directories
+mkdir -p /etc/skel/.mozilla/firefox/nanite-aiml.default-esr
+mkdir -p /etc/skel/.mozilla/firefox/nanite-aiml.default-esr/{chrome,bookmarkbackups}
+
+# Application directories
+mkdir -p /etc/skel/.local/share/applications
+mkdir -p /etc/skel/.cache
+
+# System directories that hooks use
+mkdir -p /usr/share/{applications,pixmaps,backgrounds}
+mkdir -p /usr/share/applications/ai-tools
+mkdir -p /usr/share/pixmaps/ai-tools
+mkdir -p /usr/share/nanite-aiml/{docs,examples,cheatsheets}
+mkdir -p /usr/share/desktop-directories
+
+# Calamares directories
+mkdir -p /etc/calamares/{modules,branding/nanite}
+mkdir -p /usr/share/calamares/branding/nanite/slideshow
+
+# Binary directories for scripts
+mkdir -p /usr/local/bin/{safe-launchers,ai-tools}
+mkdir -p /opt/ai-tools
+
+# Environment directories
+mkdir -p /etc/{environment.d,profile.d,update-motd.d}
+mkdir -p /etc/xdg/menus/applications-merged
+
+# Ensure proper ownership for skeleton files
+chown -R root:root /etc/skel 2>/dev/null || true
+
+# Set reasonable permissions
+find /etc/skel -type d -exec chmod 755 {} \; 2>/dev/null || true
+find /etc/skel -type f -exec chmod 644 {} \; 2>/dev/null || true
+
+# Create directory creation verification script
+cat > /usr/local/bin/verify-directories << 'EOF'
+#!/bin/bash
+# Verify all required directories exist
+
+echo "📁 Directory Verification"
+echo "========================"
+
+required_dirs=(
+    "/etc/skel/.config/conky"
+    "/etc/skel/.config/xfce4/panel"
+    "/etc/skel/.config/autostart"
+    "/etc/skel/AI-ML-Projects"
+    "/etc/skel/.mozilla/firefox"
+    "/usr/share/applications"
+    "/etc/calamares/modules"
+    "/usr/local/bin"
+)
+
+missing_dirs=0
+for dir in "${required_dirs[@]}"; do
+    if [ -d "$dir" ]; then
+        echo "✅ $dir"
+    else
+        echo "❌ $dir"
+        ((missing_dirs++))
+    fi
+done
+
+echo ""
+if [ $missing_dirs -eq 0 ]; then
+    echo "✅ All required directories exist"
+    return 0
+else
+    echo "❌ $missing_dirs directories missing"
+    return 1
+fi
+EOF
+
+chmod +x /usr/local/bin/verify-directories
+
+echo "I: Final directory fixes completed!"
+echo "   ✅ All skeleton directories created"
+echo "   ✅ All system directories prepared" 
+echo "   ✅ Proper permissions set"
+echo "   ✅ Directory verification tool created"
+echo ""
+echo "   🧪 Verify directories: verify-directories"

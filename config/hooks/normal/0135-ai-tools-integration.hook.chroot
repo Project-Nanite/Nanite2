@@ -45,6 +45,7 @@ google-colab.desktop
 EOF
 
 # Create AI tools desktop widget/conky for system information
+mkdir -p /etc/skel/.config/conky
 cat > /etc/skel/.config/conky/ai-tools-widget.conf << 'EOF'
 conky.config = {
     alignment = 'top_right',
