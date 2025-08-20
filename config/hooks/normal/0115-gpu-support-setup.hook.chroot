@@ -1,0 +1,303 @@
+#!/bin/bash
+
+# GPU Support Setup Hook for Nanite Linux AI/ML
+# Prepares system for NVIDIA CUDA and AMD ROCm support
+
+set -e
+
+echo "I: Setting up GPU support for AI/ML workloads..."
+
+# Create GPU detection and setup script
+cat > /usr/local/bin/setup-gpu-aiml << 'EOF'
+#!/bin/bash
+# GPU Setup for AI/ML - NVIDIA CUDA & AMD ROCm Support
+
+echo "🖥️  Nanite AI/ML GPU Setup"
+echo "=========================="
+
+detect_gpu() {
+    nvidia_gpu=$(lspci | grep -i nvidia | head -1)
+    amd_gpu=$(lspci | grep -i amd | grep -i vga | head -1) 
+    
+    echo "🔍 Detecting GPU hardware..."
+    
+    if [ -n "$nvidia_gpu" ]; then
+        echo "✅ NVIDIA GPU detected: $nvidia_gpu"
+        return 1  # NVIDIA
+    elif [ -n "$amd_gpu" ]; then
+        echo "✅ AMD GPU detected: $amd_gpu"  
+        return 2  # AMD
+    else
+        echo "ℹ️  No dedicated GPU detected. Will use CPU for AI/ML."
+        return 0  # No GPU
+    fi
+}
+
+setup_nvidia_cuda() {
+    echo ""
+    echo "🟢 Setting up NVIDIA CUDA support..."
+    
+    # Add NVIDIA repository
+    wget -qO - https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64/3bf863cc.pub | apt-key add -
+    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64 /" > /etc/apt/sources.list.d/cuda.list
+    
+    apt update
+    
+    # Install NVIDIA drivers and CUDA
+    echo "📦 Installing NVIDIA drivers and CUDA..."
+    DEBIAN_FRONTEND=noninteractive apt install -y \
+        nvidia-driver \
+        nvidia-cuda-toolkit \
+        nvidia-cuda-dev \
+        libnvidia-ml1 \
+        nvidia-ml-py3
+    
+    # Install cuDNN (if available)
+    apt install -y libcudnn8 libcudnn8-dev 2>/dev/null || echo "cuDNN not available in repositories"
+    
+    # Setup CUDA environment
+    echo 'export PATH=/usr/local/cuda/bin:$PATH' >> /etc/environment
+    echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> /etc/environment
+    
+    echo "✅ NVIDIA CUDA setup completed!"
+    echo "   Please reboot to enable NVIDIA drivers"
+}
+
+setup_amd_rocm() {
+    echo ""
+    echo "🔴 Setting up AMD ROCm support..."
+    
+    # Add ROCm repository
+    wget -qO - https://repo.radeon.com/rocm/rocm.gpg.key | apt-key add -
+    echo "deb [arch=amd64] https://repo.radeon.com/rocm/apt/debian/ ubuntu main" > /etc/apt/sources.list.d/rocm.list
+    
+    apt update
+    
+    # Install ROCm
+    echo "📦 Installing AMD ROCm..."
+    DEBIAN_FRONTEND=noninteractive apt install -y \
+        rocm-dev \
+        rocm-libs \
+        rocm-utils \
+        hip-dev \
+        rocblas \
+        rocfft \
+        rocrand \
+        rocsparse \
+        rocsolver \
+        rocthrust
+    
+    # Add user to render group
+    usermod -a -G render $SUDO_USER 2>/dev/null || echo "User will be added to render group on first login"
+    
+    echo "✅ AMD ROCm setup completed!"
+    echo "   Please reboot and run 'rocm-smi' to verify installation"
+}
+
+setup_cpu_optimizations() {
+    echo ""
+    echo "⚡ Setting up CPU optimizations for AI/ML..."
+    
+    # Install Intel MKL and OpenBLAS
+    apt install -y \
+        libopenblas-dev \
+        liblapack-dev \
+        libblas-dev
+    
+    # Install Intel MKL if available
+    apt install -y intel-mkl 2>/dev/null || echo "Intel MKL not available"
+    
+    echo "✅ CPU optimizations configured!"
+}
+
+install_gpu_python_packages() {
+    echo ""
+    echo "🐍 Installing GPU-enabled Python packages..."
+    
+    # Activate AI/ML environment
+    source ~/ai-ml-env/bin/activate 2>/dev/null || {
+        echo "AI/ML environment not found. Setting up first..."
+        setup-aiml-env
+        source ~/ai-ml-env/bin/activate
+    }
+    
+    if detect_gpu; then
+        gpu_type=$?
+        if [ $gpu_type -eq 1 ]; then
+            # NVIDIA GPU packages
+            pip install --upgrade \
+                tensorflow-gpu \
+                torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 \
+                cupy-cuda11x \
+                numba[cuda]
+        elif [ $gpu_type -eq 2 ]; then
+            # AMD GPU packages  
+            pip install --upgrade \
+                tensorflow-rocm \
+                torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.4.2
+        fi
+    else
+        echo "Installing CPU-only versions..."
+        pip install --upgrade \
+            tensorflow-cpu \
+            torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+    fi
+    
+    echo "✅ GPU Python packages installed!"
+}
+
+# Main execution
+echo "This script will set up GPU support for AI/ML development."
+echo "It may require internet connection and can take several minutes."
+echo ""
+
+if [ "$EUID" -ne 0 ]; then
+    echo "⚠️  This script requires root privileges for system packages."
+    echo "   Running with sudo..."
+    exec sudo "$0" "$@"
+fi
+
+detect_gpu
+gpu_type=$?
+
+case $gpu_type in
+    1)
+        echo ""
+        read -p "Install NVIDIA CUDA support? (y/N): " install_nvidia
+        if [[ $install_nvidia =~ ^[Yy]$ ]]; then
+            setup_nvidia_cuda
+        fi
+        ;;
+    2)
+        echo ""
+        read -p "Install AMD ROCm support? (y/N): " install_amd
+        if [[ $install_amd =~ ^[Yy]$ ]]; then
+            setup_amd_rocm  
+        fi
+        ;;
+    0)
+        setup_cpu_optimizations
+        ;;
+esac
+
+# Always ask about Python packages
+echo ""
+read -p "Install GPU-optimized Python packages? (Y/n): " install_python
+if [[ ! $install_python =~ ^[Nn]$ ]]; then
+    install_gpu_python_packages
+fi
+
+echo ""
+echo "🎉 GPU setup completed!"
+echo ""
+echo "📋 Next steps:"
+echo "   1. Reboot your system if drivers were installed"
+echo "   2. Test GPU with: nvidia-smi (NVIDIA) or rocm-smi (AMD)"  
+echo "   3. Verify in Python: import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+echo ""
+EOF
+
+chmod +x /usr/local/bin/setup-gpu-aiml
+
+# Create desktop shortcut for GPU setup
+cat > /usr/share/applications/nanite-gpu-setup.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=GPU Setup (AI/ML)
+Comment=Setup NVIDIA CUDA or AMD ROCm for AI/ML acceleration
+Exec=xfce4-terminal --title="GPU Setup" --command="setup-gpu-aiml"
+Icon=preferences-system
+Terminal=true
+StartupNotify=true
+Categories=System;Settings;Development;
+Keywords=gpu;cuda;rocm;nvidia;amd;ai;ml;acceleration;
+EOF
+
+# Create GPU monitoring desktop application
+cat > /usr/share/applications/nanite-gpu-monitor.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=GPU Monitor
+Comment=Monitor GPU usage for AI/ML workloads
+Exec=bash -c 'if command -v nvidia-smi >/dev/null; then watch -n1 nvidia-smi; elif command -v rocm-smi >/dev/null; then watch -n1 rocm-smi; else echo "No GPU monitoring tool available. Install GPU drivers first."; sleep 5; fi'
+Icon=utilities-system-monitor
+Terminal=true
+StartupNotify=true
+Categories=System;Monitor;Development;
+Keywords=gpu;monitor;nvidia;amd;performance;
+EOF
+
+# Create GPU information script
+cat > /usr/local/bin/gpu-info << 'EOF'
+#!/bin/bash
+# Display comprehensive GPU information for AI/ML
+
+echo "🖥️  GPU Information for AI/ML"
+echo "============================="
+
+# Hardware detection
+echo ""
+echo "🔍 Hardware Detection:"
+lspci | grep -E "(VGA|3D|Display)" | head -5
+
+# NVIDIA info
+if command -v nvidia-smi >/dev/null 2>&1; then
+    echo ""
+    echo "🟢 NVIDIA GPU Status:"
+    nvidia-smi --query-gpu=name,memory.total,memory.used,memory.free,temperature.gpu,power.draw --format=csv
+fi
+
+# AMD ROCm info
+if command -v rocm-smi >/dev/null 2>&1; then
+    echo ""
+    echo "🔴 AMD GPU Status:"
+    rocm-smi --showtemp --showpower --showmeminfo
+fi
+
+# OpenCL info
+if command -v clinfo >/dev/null 2>&1; then
+    echo ""
+    echo "⚡ OpenCL Devices:"
+    clinfo -l
+fi
+
+# Python GPU detection
+echo ""
+echo "🐍 Python GPU Detection:"
+python3 -c "
+try:
+    import tensorflow as tf
+    print(f'TensorFlow GPUs: {len(tf.config.list_physical_devices(\"GPU\"))}')
+    if tf.config.list_physical_devices('GPU'):
+        for gpu in tf.config.list_physical_devices('GPU'):
+            print(f'  {gpu}')
+except ImportError:
+    print('TensorFlow not installed')
+
+try:
+    import torch
+    print(f'PyTorch CUDA available: {torch.cuda.is_available()}')
+    if torch.cuda.is_available():
+        print(f'PyTorch GPUs: {torch.cuda.device_count()}')
+        for i in range(torch.cuda.device_count()):
+            print(f'  {i}: {torch.cuda.get_device_name(i)}')
+except ImportError:
+    print('PyTorch not installed')
+" 2>/dev/null || echo "Python AI/ML packages not yet installed"
+
+echo ""
+echo "💡 Tip: Run 'setup-gpu-aiml' to install GPU drivers and AI/ML packages"
+EOF
+
+chmod +x /usr/local/bin/gpu-info
+
+# Add GPU info to system info script
+if [ -f /usr/local/bin/nanite-sysinfo ]; then
+    sed -i '/echo "Logo: Nanite Geometric Bee"/a\\necho "GPU Info:"\ngpu-info 2>/dev/null | head -3' /usr/local/bin/nanite-sysinfo
+fi
+
+echo "I: GPU support setup completed!"
+echo "   Users can run 'setup-gpu-aiml' to configure GPU acceleration"
+echo "   Desktop applications created for GPU setup and monitoring"

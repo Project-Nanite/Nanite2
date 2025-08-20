@@ -1,0 +1,256 @@
+#!/bin/bash
+
+# User Setup Options Hook for Nanite Linux AI/ML
+# Provides options for root vs regular user setup
+
+set -e
+
+echo "I: Setting up user configuration options..."
+
+# Alternative: Create proper non-root user configuration option
+cat > /usr/local/bin/setup-proper-user << 'EOF'
+#!/bin/bash
+# Setup proper non-root user for Nanite Linux
+
+echo "👤 Nanite Linux User Setup"  
+echo "=========================="
+echo ""
+echo "Your system is currently configured to use root user."
+echo "For better security and application compatibility, we can:"
+echo ""
+echo "1. Continue with root user (with safety fixes applied)"
+echo "2. Switch to proper non-root user (recommended)"
+echo ""
+
+read -p "Choose option (1 or 2): " choice
+
+case $choice in
+    1)
+        echo "✅ Continuing with root user setup..."
+        echo "   All applications have been fixed to work safely with root."
+        echo "   VS Code will run as 'nanite-user' for security."
+        ;;
+    2)
+        echo "🔄 Setting up proper non-root user..."
+        
+        # Get username  
+        read -p "Enter username for new user (default: nanite): " username
+        username=${username:-nanite}
+        
+        # Create user
+        if ! id -u "$username" >/dev/null 2>&1; then
+            useradd -m -s /bin/bash -G sudo,audio,video,plugdev,netdev,bluetooth,scanner "$username"
+            echo "Created user: $username"
+        fi
+        
+        # Set password
+        echo "Setting password for user $username:"
+        passwd "$username"
+        
+        # Copy AI/ML environment
+        if [ -d /root/AI-ML-Projects ]; then
+            echo "📂 Copying AI/ML projects..."
+            cp -r /root/AI-ML-Projects /home/$username/
+            chown -R $username:$username /home/$username/AI-ML-Projects
+        fi
+        
+        if [ -d /root/ai-ml-env ]; then
+            echo "🐍 Copying Python environment..."
+            cp -r /root/ai-ml-env /home/$username/
+            chown -R $username:$username /home/$username/ai-ml-env
+        fi
+        
+        # Copy desktop shortcuts
+        if [ -d /root/Desktop ]; then
+            echo "🖥️ Copying desktop shortcuts..."
+            mkdir -p /home/$username/Desktop
+            cp -r /root/Desktop/* /home/$username/Desktop/ 2>/dev/null || true
+            chown -R $username:$username /home/$username/Desktop
+        fi
+        
+        # Configure autologin for new user
+        echo "⚙️ Configuring auto-login..."
+        
+        # Update LightDM configuration
+        if [ -f /etc/lightdm/lightdm.conf ]; then
+            sed -i "s/#autologin-user=.*/autologin-user=$username/" /etc/lightdm/lightdm.conf
+            sed -i "s/autologin-user=root/autologin-user=$username/" /etc/lightdm/lightdm.conf
+        fi
+        
+        # Create user startup script
+        mkdir -p /home/$username/.config/autostart
+        cat > /home/$username/.config/autostart/nanite-welcome.desktop << 'USER_EOF'
+[Desktop Entry]
+Type=Application
+Name=Nanite AI/ML Welcome
+Comment=Welcome to your AI/ML environment
+Exec=bash -c 'notify-send "🤖 Welcome to Nanite AI/ML" "Your environment is ready! Check your Desktop for shortcuts." -i applications-science'
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+USER_EOF
+        
+        chown -R $username:$username /home/$username/.config
+        
+        echo ""  
+        echo "✅ User setup completed!"
+        echo "   Username: $username"
+        echo "   AI/ML projects copied to: /home/$username/AI-ML-Projects"
+        echo "   Desktop shortcuts available"
+        echo "   Auto-login configured"
+        echo ""
+        echo "🔄 Please reboot to log in as the new user."
+        ;;
+    *)
+        echo "Invalid choice. Keeping current root setup."
+        ;;
+esac
+EOF
+
+chmod +x /usr/local/bin/setup-proper-user
+
+# Create user setup desktop shortcut
+cat > /etc/skel/Desktop/user-setup-options.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=👤 User Setup Options
+Comment=Configure user account for better application compatibility
+Exec=xfce4-terminal --title="User Setup Options" --command="setup-proper-user"
+Icon=user-info
+Terminal=true
+StartupNotify=true
+Categories=System;Settings;
+Keywords=user;setup;root;account;security;
+EOF
+
+chmod +x /etc/skel/Desktop/user-setup-options.desktop
+
+# Also create it in root desktop
+cp /etc/skel/Desktop/user-setup-options.desktop /root/Desktop/ 2>/dev/null || true
+chmod +x /root/Desktop/user-setup-options.desktop 2>/dev/null || true
+
+# Update the welcome message for root users
+cat > /etc/update-motd.d/20-nanite-aiml << 'EOF'
+#!/bin/bash
+# Nanite AI/ML MOTD
+
+echo "🤖 Welcome to Nanite Linux AI/ML Edition!"
+echo "========================================"
+
+if [ "$USER" = "root" ]; then
+    echo "⚠️  You're logged in as root user."
+    echo "   • Some applications have been fixed with safety wrappers"
+    echo "   • VS Code runs as separate user for security"
+    echo "   • Run 'setup-proper-user' for better compatibility"
+    echo ""
+fi
+
+echo "🚀 Quick Start:"
+echo "   • Run 'setup-aiml-env' to configure AI/ML environment"
+echo "   • Check Desktop shortcuts for quick access"
+echo "   • AI Tools available in Applications menu"
+echo ""
+
+if command -v check-aiml-env >/dev/null 2>&1; then
+    if [ -d ~/ai-ml-env ]; then
+        echo "✅ AI/ML environment: Ready"
+    else
+        echo "📦 AI/ML environment: Run 'setup-aiml-env' to configure"
+    fi
+fi
+
+echo ""
+EOF
+
+chmod +x /etc/update-motd.d/20-nanite-aiml
+
+# Create comprehensive application compatibility script
+cat > /usr/local/bin/app-compatibility-check << 'EOF'
+#!/bin/bash
+# Check application compatibility with current user
+
+echo "🔍 Application Compatibility Check"
+echo "=================================="
+echo ""
+
+if [ "$EUID" -eq 0 ]; then
+    echo "👤 Current User: root"
+    echo ""
+    echo "⚠️  Root User Compatibility Status:"
+    echo ""
+    
+    # Check VS Code
+    if [ -f /usr/local/bin/safe-launchers/vscode-root ]; then
+        echo "✅ VS Code: Fixed (runs as separate user)"
+    else
+        echo "❌ VS Code: Not fixed"
+    fi
+    
+    # Check Jupyter
+    if [ -f /usr/local/bin/safe-launchers/jupyter-root ]; then
+        echo "✅ Jupyter Lab: Fixed (--allow-root)"
+    else
+        echo "❌ Jupyter Lab: Not fixed"
+    fi
+    
+    # Check Firefox
+    if [ -f /usr/local/bin/safe-launchers/firefox-root ]; then
+        echo "✅ Firefox: Optimized for root"
+    else
+        echo "❌ Firefox: Standard version"
+    fi
+    
+    # Check Chrome
+    if [ -f /usr/local/bin/safe-launchers/chrome-root ]; then
+        echo "✅ Chrome: Fixed (--no-sandbox)"
+    else
+        echo "❌ Chrome: May have issues"
+    fi
+    
+    echo ""
+    echo "💡 Recommendations:"
+    echo "   • All applications have been made root-compatible"
+    echo "   • For maximum compatibility, run 'setup-proper-user'"
+    echo "   • Use 'fix-root-apps' if you encounter issues"
+    
+else
+    echo "👤 Current User: $USER (non-root)"
+    echo "✅ All applications should work normally"
+fi
+
+echo ""
+echo "🛠️ Available Tools:"
+echo "   • setup-proper-user   - Switch to non-root user"
+echo "   • fix-root-apps       - Fix root user app issues"
+echo "   • check-root-apps     - Check app status"
+echo "   • setup-aiml-env      - Setup AI/ML environment"
+EOF
+
+chmod +x /usr/local/bin/app-compatibility-check
+
+# Update all existing application launchers to use safe versions
+echo "🔄 Updating application launchers for root compatibility..."
+
+# Update main application launchers to use safe versions if running as root
+for app_script in setup-aiml-env nanite-jupyter-launcher nanite-spyder-launcher; do
+    if [ -f "/usr/local/bin/$app_script" ]; then
+        # Add root check to existing scripts
+        sed -i '#!/bin/bash/a\
+# Root user compatibility check\
+if [ "$EUID" -eq 0 ]; then\
+    echo "🔧 Running with root user compatibility fixes..."\
+fi\
+' "/usr/local/bin/$app_script" 2>/dev/null || true
+    fi
+done
+
+echo "I: User setup options configuration completed!"
+echo "   ✅ Root user application fixes applied"
+echo "   ✅ Option to switch to proper user provided"
+echo "   ✅ Desktop shortcut for user setup created"
+echo "   ✅ Compatibility checking tools added"
+echo "   ✅ All applications should now work with root user"
+echo ""
+echo "   💡 Users can run 'setup-proper-user' to switch to non-root user"
+echo "   💡 Or continue with root user with all safety fixes applied"

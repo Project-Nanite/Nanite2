@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Calamares Desktop Icon + Autostart Setup for Live Environment
+
+set -e
+
+echo "I: Setting up Calamares desktop icon and autostart for live user..."
+
+LIVE_USER="root"
+LIVE_HOME="/root"
+
+if [ -d "$LIVE_HOME" ]; then
+    echo "I: Creating desktop icon for user $LIVE_USER..."
+    
+    # Create Desktop directory
+    mkdir -p "$LIVE_HOME/Desktop"
+    
+    # Create Autostart directory
+    mkdir -p "$LIVE_HOME/.config/autostart"
+    
+    # Write the desktop entry
+    cat > "$LIVE_HOME/Desktop/install-nanite.desktop" << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Install Nanite
+Name[en_US]=Install Nanite Linux
+Comment=Install Nanite Linux to your computer
+Comment[en_US]=Install the beautiful Nanite Linux distribution to your hard drive
+Exec=install-debian
+Icon=nanite-logo
+Terminal=false
+StartupNotify=true
+Categories=System;Settings;
+Keywords=install;system;setup;calamares;nanite;
+GenericName=System Installer
+GenericName[en_US]=Nanite Linux Installer
+X-GNOME-Autostart-enabled=true
+Path=/root
+EOF
+
+    # Make it executable
+    chmod +x "$LIVE_HOME/Desktop/install-nanite.desktop"
+    chown -R $LIVE_USER:$LIVE_USER "$LIVE_HOME/Desktop"
+
+    # Copy to autostart
+    cp "$LIVE_HOME/Desktop/install-nanite.desktop" "$LIVE_HOME/.config/autostart/"
+    chown -R $LIVE_USER:$LIVE_USER "$LIVE_HOME/.config/autostart"
+
+    echo "I: Desktop icon + autostart entry created"
+else
+    echo "W: Live user home directory not found at $LIVE_HOME"
+fi
+
+# Ensure the installer launcher is executable
+if [ -f /usr/local/bin/nanite-installer ]; then
+    chmod +x /usr/local/bin/nanite-installer
+    echo "I: Nanite installer launcher is ready"
+else
+    echo "W: Nanite installer launcher not found"
+fi
+
+# Update application menu entry
+if [ -f /usr/share/applications/calamares.desktop ]; then
+    sed -i 's|Exec=.*|Exec=nanite-installer|g' /usr/share/applications/calamares.desktop
+    echo "I: Updated application menu entry"
+fi
+
+echo "I: Calamares desktop icon + autostart setup completed"

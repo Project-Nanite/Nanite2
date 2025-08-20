@@ -1,0 +1,452 @@
+#!/bin/bash
+
+# Fix Root User Applications Hook for Nanite Linux AI/ML  
+# Fixes applications that have issues running as root user
+
+set -e
+
+echo "I: Fixing applications for root user environment..."
+
+# Create safe application launcher scripts that handle root user issues
+mkdir -p /usr/local/bin/safe-launchers
+
+# Fix VS Code for root user
+echo "📝 Creating VS Code root-safe launcher..."
+
+cat > /usr/local/bin/safe-launchers/vscode-root << 'EOF'
+#!/bin/bash
+# Safe VS Code launcher for root user
+
+# Check if we're running as root
+if [ "$EUID" -eq 0 ]; then
+    # Running as root - use workarounds
+    echo "🔧 Launching VS Code with root user workarounds..."
+    
+    # Create a non-root user session for VS Code if needed
+    if ! id -u nanite-user >/dev/null 2>&1; then
+        # Create temporary user for applications that don't like root
+        useradd -m -s /bin/bash -G sudo,audio,video,plugdev,netdev nanite-user 2>/dev/null || true
+        echo "nanite-user:nanite" | chpasswd 2>/dev/null || true
+        
+        # Copy AI/ML environment to new user
+        if [ -d /root/AI-ML-Projects ]; then
+            cp -r /root/AI-ML-Projects /home/nanite-user/
+            chown -R nanite-user:nanite-user /home/nanite-user/AI-ML-Projects
+        fi
+        
+        # Copy ai-ml-env if it exists
+        if [ -d /root/ai-ml-env ]; then
+            cp -r /root/ai-ml-env /home/nanite-user/
+            chown -R nanite-user:nanite-user /home/nanite-user/ai-ml-env
+        fi
+    fi
+    
+    # Launch VS Code as non-root user with proper display
+    sudo -u nanite-user -H bash -c "
+        export DISPLAY=:0
+        export XAUTHORITY=/root/.Xauthority
+        cd /home/nanite-user/AI-ML-Projects
+        code --no-sandbox --disable-gpu-sandbox --user-data-dir=/home/nanite-user/.vscode-root --disable-dev-shm-usage /home/nanite-user/AI-ML-Projects
+    " &
+else
+    # Not running as root - launch normally
+    code "$@" &
+fi
+EOF
+
+chmod +x /usr/local/bin/safe-launchers/vscode-root
+
+# Create working VS Code desktop file
+cat > /usr/share/applications/code.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Visual Studio Code
+Comment=Code Editing. Redefined.
+GenericName=Text Editor
+Exec=/usr/local/bin/safe-launchers/vscode-root %F
+Icon=vscode
+Terminal=false
+StartupNotify=true
+StartupWMClass=Code
+Categories=TextEditor;Development;IDE;
+MimeType=text/plain;inode/directory;application/x-code-workspace;
+Actions=new-empty-window;
+Keywords=vscode;
+
+[Desktop Action new-empty-window]
+Name=New Empty Window
+Exec=/usr/local/bin/safe-launchers/vscode-root --new-window %F
+Icon=vscode
+EOF
+
+chmod 644 /usr/share/applications/code.desktop
+
+# Fix Chrome/Chromium for root user
+echo "🌐 Creating Chrome/Chromium root-safe launcher..."
+
+cat > /usr/local/bin/safe-launchers/chrome-root << 'EOF'
+#!/bin/bash
+# Safe Chrome launcher for root user
+
+if [ "$EUID" -eq 0 ]; then
+    # Running as root - use sandbox workarounds
+    if command -v google-chrome >/dev/null 2>&1; then
+        google-chrome --no-sandbox --disable-dev-shm-usage --user-data-dir=/root/.config/chrome-root "$@" &
+    elif command -v chromium >/dev/null 2>&1; then
+        chromium --no-sandbox --disable-dev-shm-usage --user-data-dir=/root/.config/chromium-root "$@" &
+    elif command -v chromium-browser >/dev/null 2>&1; then
+        chromium-browser --no-sandbox --disable-dev-shm-usage --user-data-dir=/root/.config/chromium-root "$@" &
+    else
+        echo "Chrome/Chromium not found"
+    fi
+else
+    # Not root - launch normally
+    if command -v google-chrome >/dev/null 2>&1; then
+        google-chrome "$@" &
+    elif command -v chromium >/dev/null 2>&1; then
+        chromium "$@" &
+    fi
+fi
+EOF
+
+chmod +x /usr/local/bin/safe-launchers/chrome-root
+
+# Fix Firefox for better root compatibility  
+echo "🦊 Creating Firefox root-optimized launcher..."
+
+cat > /usr/local/bin/safe-launchers/firefox-root << 'EOF'
+#!/bin/bash
+# Optimized Firefox launcher for root user
+
+# Set Firefox profile directory for root
+export FIREFOX_PROFILE_ROOT="/root/.mozilla/firefox"
+mkdir -p "$FIREFOX_PROFILE_ROOT"
+
+# Create or use existing profile
+if [ ! -d "$FIREFOX_PROFILE_ROOT/nanite-aiml.default-esr" ]; then
+    firefox --createprofile "nanite-aiml /root/.mozilla/firefox/nanite-aiml.default-esr" 2>/dev/null || true
+fi
+
+# Launch Firefox with root-optimized settings
+firefox --profile "/root/.mozilla/firefox/nanite-aiml.default-esr" "$@" &
+EOF
+
+chmod +x /usr/local/bin/safe-launchers/firefox-root
+
+# Update AI tool launchers to use safe Firefox launcher
+echo "🤖 Updating AI tool launchers for root compatibility..."
+
+# Function to update AI tool desktop files
+update_ai_tool_launcher() {
+    local filename="$1"
+    local url="$2"
+    local name="$3"
+    
+    if [ -f "/usr/share/applications/${filename}.desktop" ]; then
+        sed -i "s|Exec=firefox.*|Exec=/usr/local/bin/safe-launchers/firefox-root --new-window --class=\"$name\" \"$url\"|g" "/usr/share/applications/${filename}.desktop"
+    fi
+}
+
+# Update all AI tool launchers
+update_ai_tool_launcher "chatgpt" "https://chat.openai.com/" "ChatGPT"
+update_ai_tool_launcher "claude-ai" "https://claude.ai/" "Claude AI"
+update_ai_tool_launcher "google-gemini" "https://gemini.google.com/" "Google Gemini"
+update_ai_tool_launcher "perplexity" "https://perplexity.ai/" "Perplexity"
+
+# Fix Jupyter Lab for root user
+echo "📊 Creating Jupyter Lab root-safe launcher..."
+
+cat > /usr/local/bin/safe-launchers/jupyter-root << 'EOF'
+#!/bin/bash
+# Safe Jupyter Lab launcher for root user
+
+set -e
+
+# Function to show error dialog
+show_error() {
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --error --title="Jupyter Lab Error" --text="$1"
+    else
+        echo "ERROR: $1"
+    fi
+}
+
+# Create projects directory
+mkdir -p /root/AI-ML-Projects
+cd /root/AI-ML-Projects
+
+# Check and activate virtual environment
+if [ -d /root/ai-ml-env ]; then
+    source /root/ai-ml-env/bin/activate
+fi
+
+# Install Jupyter if not available
+if ! command -v jupyter >/dev/null 2>&1; then
+    echo "Installing Jupyter Lab..."
+    pip install jupyterlab ipywidgets 2>/dev/null || {
+        show_error "Failed to install Jupyter Lab. Please run 'setup-aiml-env' first."
+        exit 1
+    }
+fi
+
+# Start Jupyter Lab with root-safe settings
+echo "🚀 Starting Jupyter Lab for root user..."
+jupyter lab \
+    --notebook-dir=/root/AI-ML-Projects \
+    --ip=127.0.0.1 \
+    --port=8888 \
+    --no-browser \
+    --allow-root \
+    --ServerApp.token='' \
+    --ServerApp.password='' \
+    --ServerApp.disable_check_xsrf=True &
+
+# Wait and open browser
+sleep 3
+/usr/local/bin/safe-launchers/firefox-root --new-window "http://localhost:8888" &
+
+echo "✅ Jupyter Lab started successfully!"
+EOF
+
+chmod +x /usr/local/bin/safe-launchers/jupyter-root
+
+# Update Jupyter desktop launcher
+cat > /usr/share/applications/jupyter-lab.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Jupyter Lab
+Comment=Launch Jupyter Lab for AI/ML Development
+Exec=/usr/local/bin/safe-launchers/jupyter-root
+Icon=jupyter-lab
+Terminal=false
+StartupNotify=true
+Categories=Development;Science;Education;
+Keywords=jupyter;notebook;python;ai;ml;data;science;
+EOF
+
+chmod 644 /usr/share/applications/jupyter-lab.desktop
+
+# Fix Spyder for root user
+echo "🐍 Creating Spyder root-safe launcher..."
+
+cat > /usr/local/bin/safe-launchers/spyder-root << 'EOF'
+#!/bin/bash
+# Safe Spyder launcher for root user
+
+# Activate AI/ML environment if available
+if [ -d /root/ai-ml-env ]; then
+    source /root/ai-ml-env/bin/activate
+fi
+
+# Create Spyder config directory for root
+mkdir -p /root/.spyder-py3
+
+# Set working directory
+cd /root/AI-ML-Projects 2>/dev/null || cd /root
+
+# Launch Spyder with root-safe settings
+if command -v spyder >/dev/null 2>&1; then
+    echo "🚀 Starting Spyder..."
+    spyder --workdir=/root/AI-ML-Projects &
+elif command -v spyder3 >/dev/null 2>&1; then
+    echo "🚀 Starting Spyder3..."
+    spyder3 --workdir=/root/AI-ML-Projects &
+else
+    # Install Spyder if not available
+    if [ -d /root/ai-ml-env ]; then
+        source /root/ai-ml-env/bin/activate
+        pip install spyder &
+        echo "Installing Spyder... Please wait and try again in a moment."
+    else
+        zenity --error --text="Spyder not found. Please run 'setup-aiml-env' first." 2>/dev/null || echo "Spyder not found. Run setup-aiml-env."
+    fi
+fi
+EOF
+
+chmod +x /usr/local/bin/safe-launchers/spyder-root
+
+# Update Spyder desktop launcher
+cat > /usr/share/applications/spyder.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Spyder
+Comment=Scientific Python Development Environment
+Exec=/usr/local/bin/safe-launchers/spyder-root
+Icon=spyder
+Terminal=false
+StartupNotify=true
+Categories=Development;Science;Education;
+Keywords=python;ide;scientific;spyder;development;
+EOF
+
+chmod 644 /usr/share/applications/spyder.desktop
+
+# Create comprehensive application environment setup
+echo "🛠️ Creating root user application environment..."
+
+# Set up environment variables for root user applications
+cat >> /root/.bashrc << 'EOF'
+
+# Nanite AI/ML Root User Environment
+export DISPLAY=:0
+
+# Fix for applications that don't like root
+export QTWEBENGINE_DISABLE_SANDBOX=1
+export CHROME_NO_SANDBOX=1
+
+# Python environment
+if [ -d ~/ai-ml-env ] && [ -z "$VIRTUAL_ENV" ]; then
+    source ~/ai-ml-env/bin/activate 2>/dev/null || true
+fi
+
+# AI/ML aliases for root user
+alias code='safe-launchers/vscode-root'
+alias jupyter='safe-launchers/jupyter-root'
+alias spyder='safe-launchers/spyder-root'
+alias chrome='safe-launchers/chrome-root'
+alias firefox='safe-launchers/firefox-root'
+
+# Development environment shortcuts
+alias ai-projects='cd ~/AI-ML-Projects'
+alias ai-setup='setup-aiml-env'
+alias ai-status='check-aiml-env'
+EOF
+
+# Create desktop shortcuts for root user
+echo "🖥️ Creating root user desktop shortcuts..."
+
+# VS Code shortcut
+cat > /root/Desktop/vscode.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Visual Studio Code
+Comment=Code Editor for AI/ML Development
+Exec=/usr/local/bin/safe-launchers/vscode-root
+Icon=vscode
+Terminal=false
+StartupNotify=true
+Categories=Development;
+EOF
+
+chmod +x /root/Desktop/vscode.desktop
+
+# Comprehensive AI/ML Setup shortcut  
+cat > /root/Desktop/setup-ai-ml-environment.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=🤖 Setup AI/ML Environment
+Comment=Configure your AI/ML development environment
+Exec=xfce4-terminal --title="AI/ML Environment Setup" --command="bash -c 'setup-aiml-env; echo; echo Press Enter to continue...; read'"
+Icon=applications-science
+Terminal=true
+StartupNotify=true
+Categories=Development;Science;System;
+Keywords=ai;ml;setup;environment;python;jupyter;
+EOF
+
+chmod +x /root/Desktop/setup-ai-ml-environment.desktop
+
+# Create application troubleshooter
+cat > /usr/local/bin/fix-root-apps << 'EOF'
+#!/bin/bash
+# Application troubleshooter for root user
+
+echo "🔧 Nanite AI/ML Root User Application Fixer"
+echo "==========================================="
+
+# Fix common root user application issues
+echo "📋 Fixing common issues..."
+
+# Set proper permissions
+chmod +x /usr/local/bin/safe-launchers/* 2>/dev/null || true
+
+# Fix X11 display issues
+export DISPLAY=:0
+xhost +SI:localuser:root 2>/dev/null || true
+
+# Fix VS Code root issues
+if [ ! -d /home/nanite-user ]; then
+    echo "🔄 Creating non-root user for problematic applications..."
+    useradd -m -s /bin/bash -G sudo,audio,video,plugdev,netdev nanite-user 2>/dev/null || true
+    echo "nanite-user:nanite" | chpasswd 2>/dev/null || true
+fi
+
+# Update desktop database
+update-desktop-database /usr/share/applications 2>/dev/null || true
+
+# Fix permissions
+chmod 755 /root/Desktop/*.desktop 2>/dev/null || true
+
+echo "✅ Root user application fixes applied!"
+echo ""
+echo "💡 Tips for root user:"
+echo "   • VS Code will run as 'nanite-user' for security"
+echo "   • Use Firefox with --new-window for AI tools" 
+echo "   • Jupyter Lab runs with --allow-root"
+echo "   • Run 'fix-root-apps' if you have issues"
+EOF
+
+chmod +x /usr/local/bin/fix-root-apps
+
+# Create root application status checker
+cat > /usr/local/bin/check-root-apps << 'EOF'
+#!/bin/bash
+# Check application status for root user
+
+echo "🤖 Root User Application Status"
+echo "==============================="
+
+# Check key applications
+apps=("firefox" "code" "jupyter" "spyder" "python3")
+for app in "${apps[@]}"; do
+    if command -v "$app" >/dev/null 2>&1; then
+        echo "✅ $app: Available"
+    else
+        echo "❌ $app: Not found"
+    fi
+done
+
+echo ""
+echo "🔧 Safe Launchers:"
+for launcher in /usr/local/bin/safe-launchers/*; do
+    if [ -f "$launcher" ]; then
+        basename "$launcher"
+        echo "  ✅ $(basename "$launcher"): Ready"
+    fi
+done
+
+echo ""
+echo "🖥️ Desktop Files:"
+if [ -d /root/Desktop ]; then
+    ls -la /root/Desktop/*.desktop 2>/dev/null | wc -l | xargs echo "  Desktop shortcuts:"
+fi
+
+echo ""
+echo "💡 If you have issues, run: fix-root-apps"
+EOF
+
+chmod +x /usr/local/bin/check-root-apps
+
+# Apply fixes immediately for current root environment
+echo "⚡ Applying immediate fixes..."
+
+# Fix current X11 display
+export DISPLAY=:0
+xhost +SI:localuser:root 2>/dev/null || true
+
+# Ensure proper permissions on all safe launchers
+find /usr/local/bin/safe-launchers -type f -exec chmod +x {} \; 2>/dev/null || true
+
+echo "I: Root user application fixes completed!"
+echo "   ✅ VS Code will run safely as non-root user"
+echo "   ✅ Chrome/Firefox have root-safe launchers"  
+echo "   ✅ Jupyter Lab configured for root with --allow-root"
+echo "   ✅ Spyder has root-compatible launcher"
+echo "   ✅ All AI tools updated for root environment"
+echo "   ✅ Desktop shortcuts created"
+echo "   ✅ Troubleshooting tools added: fix-root-apps, check-root-apps"

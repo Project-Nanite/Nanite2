@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# Firefox AI/ML Bookmarks Setup Hook for Nanite Linux
+# Configures Firefox with comprehensive AI/ML bookmarks and extensions
+
+set -e
+
+echo "I: Setting up Firefox for AI/ML development..."
+
+# Create Firefox profile structure in skeleton
+mkdir -p /etc/skel/.mozilla/firefox/nanite-aiml.default-esr
+mkdir -p /etc/skel/.mozilla/firefox/nanite-aiml.default-esr/bookmarkbackups
+
+# Create Firefox profiles.ini
+cat > /etc/skel/.mozilla/firefox/profiles.ini << 'EOF'
+[Install4F96D1932A9F858E]
+Default=nanite-aiml.default-esr
+Locked=1
+
+[Profile0]
+Name=default
+IsRelative=1
+Path=nanite-aiml.default-esr
+Default=1
+
+[General]
+StartWithLastProfile=1
+Version=2
+EOF
+
+# Create comprehensive AI/ML bookmarks
+cat > /etc/skel/.mozilla/firefox/nanite-aiml.default-esr/bookmarks.html << 'EOF'
+<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks Menu</H1>
+
+<DL><p>
+    <DT><H3 FOLDED ADD_DATE="1629825600" LAST_MODIFIED="1629825600">🤖 AI & Machine Learning</H3>
+    <DL><p>
+        <DT><H3 FOLDED ADD_DATE="1629825600" LAST_MODIFIED="1629825600">📚 Learning Resources</H3>
+        <DL><p>
+            <DT><A HREF="https://www.coursera.org/specializations/machine-learning-introduction" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Machine Learning Specialization - Coursera</A>
+            <DT><A HREF="https://www.deeplearning.ai/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">DeepLearning.AI</A>
+            <DT><A HREF="https://www.fast.ai/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Fast.ai - Practical Deep Learning</A>
+            <DT><A HREF="https://cs231n.github.io/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">CS231n: Convolutional Neural Networks</A>
+            <DT><A HREF="https://course.fast.ai/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Practical Deep Learning for Coders</A>
+            <DT><A HREF="https://www.youtube.com/c/MachineLearningExplained" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Machine Learning Explained - YouTube</A>
+            <DT><A HREF="https://www.youtube.com/c/3blue1brown" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">3Blue1Brown - Neural Networks</A>
+            <DT><A HREF="https://www.edx.org/learn/machine-learning" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">MIT Machine Learning - edX</A>
+        </DL><p>
+        
+        <DT><H3 FOLDED ADD_DATE="1629825600" LAST_MODIFIED="1629825600">🛠️ Tools & Frameworks</H3>
+        <DL><p>
+            <DT><A HREF="https://tensorflow.org/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">TensorFlow</A>
+            <DT><A HREF="https://pytorch.org/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">PyTorch</A>
+            <DT><A HREF="https://scikit-learn.org/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Scikit-learn</A>
+            <DT><A HREF="https://keras.io/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Keras</A>
+            <DT><A HREF="https://jupyter.org/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Jupyter</A>
+            <DT><A HREF="https://pandas.pydata.org/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Pandas</A>
+            <DT><A HREF="https://numpy.org/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">NumPy</A>
+            <DT><A HREF="https://matplotlib.org/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Matplotlib</A>
+            <DT><A HREF="https://seaborn.pydata.org/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Seaborn</A>
+            <DT><A HREF="https://plotly.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Plotly</A>
+        </DL><p>
+        
+        <DT><H3 FOLDED ADD_DATE="1629825600" LAST_MODIFIED="1629825600">📊 Datasets</H3>
+        <DL><p>
+            <DT><A HREF="https://www.kaggle.com/datasets" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Kaggle Datasets</A>
+            <DT><A HREF="https://huggingface.co/datasets" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Hugging Face Datasets</A>
+            <DT><A HREF="https://archive.ics.uci.edu/ml/index.php" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">UCI ML Repository</A>
+            <DT><A HREF="https://www.openml.org/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">OpenML</A>
+            <DT><A HREF="https://datasetsearch.research.google.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Google Dataset Search</A>
+            <DT><A HREF="https://registry.opendata.aws/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">AWS Open Data</A>
+            <DT><A HREF="https://data.gov/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">US Government Data</A>
+        </DL><p>
+        
+        <DT><H3 FOLDED ADD_DATE="1629825600" LAST_MODIFIED="1629825600">🏆 Competitions</H3>
+        <DL><p>
+            <DT><A HREF="https://www.kaggle.com/competitions" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Kaggle Competitions</A>
+            <DT><A HREF="https://www.drivendata.org/competitions/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">DrivenData</A>
+            <DT><A HREF="https://zindi.africa/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Zindi</A>
+            <DT><A HREF="https://www.aicrowd.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">AIcrowd</A>
+        </DL><p>
+        
+        <DT><H3 FOLDED ADD_DATE="1629825600" LAST_MODIFIED="1629825600">📰 News & Blogs</H3>
+        <DL><p>
+            <DT><A HREF="https://towardsdatascience.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Towards Data Science</A>
+            <DT><A HREF="https://machinelearningmastery.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Machine Learning Mastery</A>
+            <DT><A HREF="https://www.kdnuggets.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">KDnuggets</A>
+            <DT><A HREF="https://distill.pub/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Distill</A>
+            <DT><A HREF="https://ai.googleblog.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Google AI Blog</A>
+            <DT><A HREF="https://openai.com/blog/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">OpenAI Blog</A>
+            <DT><A HREF="https://deepmind.com/blog" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">DeepMind Blog</A>
+        </DL><p>
+        
+        <DT><H3 FOLDED ADD_DATE="1629825600" LAST_MODIFIED="1629825600">🎓 Research Papers</H3>
+        <DL><p>
+            <DT><A HREF="https://arxiv.org/list/cs.LG/recent" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">arXiv - Machine Learning</A>
+            <DT><A HREF="https://papers.with.code.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Papers With Code</A>
+            <DT><A HREF="https://scholar.google.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Google Scholar</A>
+            <DT><A HREF="https://paperswithcode.com/sota" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">State-of-the-Art Papers</A>
+        </DL><p>
+        
+        <DT><H3 FOLDED ADD_DATE="1629825600" LAST_MODIFIED="1629825600">🤖 AI Models & APIs</H3>
+        <DL><p>
+            <DT><A HREF="https://huggingface.co/models" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Hugging Face Models</A>
+            <DT><A HREF="https://openai.com/api/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">OpenAI API</A>
+            <DT><A HREF="https://cloud.google.com/ai" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Google Cloud AI</A>
+            <DT><A HREF="https://azure.microsoft.com/en-us/services/machine-learning/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Azure ML</A>
+            <DT><A HREF="https://aws.amazon.com/machine-learning/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">AWS ML</A>
+        </DL><p>
+    </DL><p>
+    
+    <DT><H3 FOLDED ADD_DATE="1629825600" LAST_MODIFIED="1629825600">💻 Development</H3>
+    <DL><p>
+        <DT><A HREF="https://github.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">GitHub</A>
+        <DT><A HREF="https://stackoverflow.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Stack Overflow</A>
+        <DT><A HREF="https://colab.research.google.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Google Colab</A>
+        <DT><A HREF="https://replit.com/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Replit</A>
+        <DT><A HREF="https://docs.python.org/3/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Python Documentation</A>
+        <DT><A HREF="https://pypi.org/" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">PyPI</A>
+    </DL><p>
+    
+    <DT><H3 FOLDED ADD_DATE="1629825600" LAST_MODIFIED="1629825600">🎯 Nanite Linux Resources</H3>
+    <DL><p>
+        <DT><A HREF="http://localhost:8888" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Local Jupyter Lab</A>
+        <DT><A HREF="file:///home/user/AI-ML-Projects" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">AI/ML Projects Folder</A>
+        <DT><A HREF="file:///home/user/Datasets" ADD_DATE="1629825600" LAST_MODIFIED="1629825600">Local Datasets</A>
+    </DL><p>
+</DL><p>
+EOF
+
+# Create user preferences for Firefox
+cat > /etc/skel/.mozilla/firefox/nanite-aiml.default-esr/user.js << 'EOF'
+// Firefox AI/ML Developer Configuration
+user_pref("browser.startup.homepage", "about:home");
+user_pref("browser.newtabpage.enabled", true);
+user_pref("browser.newtabpage.activity-stream.feeds.section.topstories", false);
+user_pref("browser.newtabpage.activity-stream.showSearch", true);
+user_pref("browser.newtabpage.activity-stream.feeds.topsites", true);
+
+// Developer tools
+user_pref("devtools.theme", "dark");
+user_pref("devtools.toolbox.host", "bottom");
+
+// Privacy settings
+user_pref("privacy.trackingprotection.enabled", true);
+user_pref("browser.safebrowsing.malware.enabled", true);
+
+// Performance
+user_pref("browser.sessionstore.max_tabs_undo", 10);
+user_pref("browser.cache.disk.capacity", 1048576);
+EOF
+
+echo "I: Firefox AI/ML bookmarks and configuration completed!"
+echo "   Firefox will open with comprehensive AI/ML resource bookmarks"

@@ -1,0 +1,427 @@
+#!/bin/bash
+
+# AI Web App Launchers Hook for Nanite Linux AI/ML
+# Creates desktop applications for popular AI tools
+
+set -e
+
+echo "I: Setting up AI tool desktop applications..."
+
+# Create AI tools directory
+mkdir -p /usr/share/applications/ai-tools
+mkdir -p /usr/share/pixmaps/ai-tools
+
+# Create AI Tools menu category
+cat > /usr/share/desktop-directories/ai-tools.directory << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Directory
+Name=AI Tools
+Comment=Artificial Intelligence and Machine Learning Tools
+Icon=applications-science
+EOF
+
+# Function to create web app launcher
+create_ai_webapp() {
+    local name="$1"
+    local url="$2"
+    local description="$3"
+    local icon="$4"
+    local keywords="$5"
+    local filename=$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+    
+    cat > "/usr/share/applications/${filename}.desktop" << EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=$name
+Comment=$description
+Exec=firefox --new-window --class="$name" "$url"
+Icon=$icon
+Terminal=false
+StartupNotify=true
+Categories=Network;WebDevelopment;Science;Development;AI-Tools;
+Keywords=$keywords;ai;artificial;intelligence;ml;
+StartupWMClass=$name
+EOF
+}
+
+# Create AI tool launchers
+echo "🤖 Creating AI tool desktop applications..."
+
+# ChatGPT
+create_ai_webapp "ChatGPT" "https://chat.openai.com/" "OpenAI's ChatGPT - Advanced AI Assistant" "applications-science" "chatgpt;openai;chat;gpt;assistant;conversational"
+
+# Claude AI
+create_ai_webapp "Claude AI" "https://claude.ai/" "Anthropic's Claude - AI Assistant for Analysis and Writing" "applications-science" "claude;anthropic;ai;assistant;analysis;writing"
+
+# Google Gemini
+create_ai_webapp "Google Gemini" "https://gemini.google.com/" "Google's Advanced AI Model - Gemini" "applications-science" "gemini;google;ai;bard;assistant;multimodal"
+
+# Perplexity AI
+create_ai_webapp "Perplexity" "https://perplexity.ai/" "AI-Powered Search and Research Engine" "applications-science" "perplexity;search;research;ai;answers;citations"
+
+# Meta AI
+create_ai_webapp "Meta AI" "https://www.meta.ai/" "Meta's AI Assistant - Powered by Llama" "applications-science" "meta;ai;llama;facebook;assistant;social"
+
+# Groq
+create_ai_webapp "Groq" "https://groq.com/" "Ultra-Fast AI Inference Platform" "applications-science" "groq;inference;fast;ai;llm;performance"
+
+# Grok (X AI)
+create_ai_webapp "Grok" "https://grok.x.ai/" "X's Grok AI - Conversational AI with Real-time Data" "applications-science" "grok;x;twitter;ai;realtime;conversational"
+
+# Manus AI
+create_ai_webapp "Manus AI" "https://www.manus.ai/" "AI-Powered Writing and Content Creation" "applications-science" "manus;writing;content;creation;ai;productivity"
+
+# Notebook LLM
+create_ai_webapp "NotebookLM" "https://notebooklm.google.com/" "Google's AI-Powered Research and Note-Taking Tool" "applications-science" "notebooklm;google;research;notes;documents;ai"
+
+# Bolt (StackBlitz)
+create_ai_webapp "Bolt" "https://bolt.new/" "AI-Powered Full-Stack Development Environment" "applications-development" "bolt;stackblitz;ai;development;coding;fullstack"
+
+# Lovable (GPT Engineer)
+create_ai_webapp "Lovable" "https://lovable.dev/" "AI-Powered App Development and Code Generation" "applications-development" "lovable;gpt;engineer;app;development;code;generation"
+
+# Create additional popular AI tools
+echo "🔧 Creating additional AI development tools..."
+
+# Cursor AI
+create_ai_webapp "Cursor" "https://cursor.sh/" "AI-First Code Editor" "applications-development" "cursor;code;editor;ai;development;programming"
+
+# Replit AI
+create_ai_webapp "Replit" "https://replit.com/" "AI-Powered Online IDE and Collaboration Platform" "applications-development" "replit;ide;ai;collaboration;coding;online"
+
+# Hugging Face
+create_ai_webapp "Hugging Face" "https://huggingface.co/" "AI Model Hub and Machine Learning Platform" "applications-science" "huggingface;models;ml;transformers;nlp;computer;vision"
+
+# Colab
+create_ai_webapp "Google Colab" "https://colab.research.google.com/" "Free Jupyter Notebook Environment with GPU/TPU" "applications-science" "colab;jupyter;notebook;gpu;tpu;machine;learning"
+
+# Create enhanced Firefox profiles for AI tools
+echo "🌐 Setting up enhanced AI tool browsing..."
+
+# Create AI tools bookmark toolbar for Firefox
+cat > /etc/skel/.mozilla/firefox/nanite-aiml.default-esr/ai-tools-toolbar.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🤖 AI Tools - Quick Access</title>
+    <style>
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d30 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .tool-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .tool-card:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .tool-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4a90e2;
+        }
+        .tool-desc {
+            font-size: 0.9em;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+        .category {
+            background: rgba(74, 144, 226, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .category h3 {
+            margin: 0 0 15px 0;
+            color: #4a90e2;
+        }
+        .local-tools {
+            background: rgba(39, 174, 96, 0.2);
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI Tools Dashboard</h1>
+        <p>Your comprehensive AI development toolkit</p>
+    </div>
+
+    <div class="category local-tools">
+        <h3>🏠 Local Development Tools</h3>
+        <div class="tools-grid">
+            <a href="http://localhost:8888" class="tool-card">
+                <div class="tool-name">Jupyter Lab</div>
+                <div class="tool-desc">Local notebook environment for AI/ML development</div>
+            </a>
+            <a href="file:///home/user/AI-ML-Projects" class="tool-card">
+                <div class="tool-name">AI/ML Projects</div>
+                <div class="tool-desc">Your local development workspace</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="category">
+        <h3>🎯 Conversational AI</h3>
+        <div class="tools-grid">
+            <a href="https://chat.openai.com/" class="tool-card">
+                <div class="tool-name">ChatGPT</div>
+                <div class="tool-desc">OpenAI's advanced conversational AI assistant</div>
+            </a>
+            <a href="https://claude.ai/" class="tool-card">
+                <div class="tool-name">Claude AI</div>
+                <div class="tool-desc">Anthropic's AI for analysis and creative tasks</div>
+            </a>
+            <a href="https://gemini.google.com/" class="tool-card">
+                <div class="tool-name">Google Gemini</div>
+                <div class="tool-desc">Google's multimodal AI model</div>
+            </a>
+            <a href="https://perplexity.ai/" class="tool-card">
+                <div class="tool-name">Perplexity</div>
+                <div class="tool-desc">AI-powered research and search engine</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="category">
+        <h3>⚡ High-Performance AI</h3>
+        <div class="tools-grid">
+            <a href="https://groq.com/" class="tool-card">
+                <div class="tool-name">Groq</div>
+                <div class="tool-desc">Ultra-fast AI inference platform</div>
+            </a>
+            <a href="https://grok.x.ai/" class="tool-card">
+                <div class="tool-name">Grok</div>
+                <div class="tool-desc">X's AI with real-time data access</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="category">
+        <h3>🛠️ Development & Coding</h3>
+        <div class="tools-grid">
+            <a href="https://bolt.new/" class="tool-card">
+                <div class="tool-name">Bolt</div>
+                <div class="tool-desc">AI-powered full-stack development</div>
+            </a>
+            <a href="https://lovable.dev/" class="tool-card">
+                <div class="tool-name">Lovable</div>
+                <div class="tool-desc">AI app development and code generation</div>
+            </a>
+            <a href="https://cursor.sh/" class="tool-card">
+                <div class="tool-name">Cursor</div>
+                <div class="tool-desc">AI-first code editor</div>
+            </a>
+            <a href="https://replit.com/" class="tool-card">
+                <div class="tool-name">Replit</div>
+                <div class="tool-desc">AI-powered online IDE</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="category">
+        <h3>📚 Research & Learning</h3>
+        <div class="tools-grid">
+            <a href="https://notebooklm.google.com/" class="tool-card">
+                <div class="tool-name">NotebookLM</div>
+                <div class="tool-desc">AI-powered research and note-taking</div>
+            </a>
+            <a href="https://huggingface.co/" class="tool-card">
+                <div class="tool-name">Hugging Face</div>
+                <div class="tool-desc">AI model hub and ML platform</div>
+            </a>
+            <a href="https://colab.research.google.com/" class="tool-card">
+                <div class="tool-name">Google Colab</div>
+                <div class="tool-desc">Free Jupyter with GPU/TPU access</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="category">
+        <h3>✍️ Content & Productivity</h3>
+        <div class="tools-grid">
+            <a href="https://www.manus.ai/" class="tool-card">
+                <div class="tool-name">Manus AI</div>
+                <div class="tool-desc">AI-powered writing and content creation</div>
+            </a>
+            <a href="https://www.meta.ai/" class="tool-card">
+                <div class="tool-name">Meta AI</div>
+                <div class="tool-desc">Meta's AI assistant powered by Llama</div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+EOF
+
+# Create desktop shortcuts for popular AI tools
+mkdir -p /etc/skel/Desktop
+
+echo "🖥️ Creating desktop shortcuts for AI tools..."
+
+# Create shortcuts for most popular AI tools on desktop
+cat > /etc/skel/Desktop/chatgpt.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ChatGPT
+Comment=OpenAI's ChatGPT AI Assistant
+Exec=firefox --new-window --class="ChatGPT" "https://chat.openai.com/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;
+EOF
+
+cat > /etc/skel/Desktop/claude-ai.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Claude AI
+Comment=Anthropic's Claude AI Assistant
+Exec=firefox --new-window --class="Claude AI" "https://claude.ai/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;
+EOF
+
+cat > /etc/skel/Desktop/google-gemini.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Google Gemini
+Comment=Google's Advanced AI Model
+Exec=firefox --new-window --class="Google Gemini" "https://gemini.google.com/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;
+EOF
+
+cat > /etc/skel/Desktop/ai-tools-dashboard.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AI Tools Dashboard
+Comment=Quick access to all AI tools and platforms
+Exec=firefox --new-window "file:///home/$USER/.mozilla/firefox/nanite-aiml.default-esr/ai-tools-toolbar.html"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;
+EOF
+
+# Make desktop files executable
+chmod +x /etc/skel/Desktop/*.desktop
+
+# Create AI Tools submenu in applications menu
+cat > /etc/xdg/menus/applications-merged/ai-tools.menu << 'EOF'
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+ "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
+<Menu>
+  <Name>Applications</Name>
+  <Menu>
+    <Name>AI-Tools</Name>
+    <Directory>ai-tools.directory</Directory>
+    <Include>
+      <Category>AI-Tools</Category>
+    </Include>
+  </Menu>
+</Menu>
+EOF
+
+# Create AI launcher script for quick access
+cat > /usr/local/bin/ai-launcher << 'EOF'
+#!/bin/bash
+# AI Tools Launcher - Quick access to AI platforms
+
+AI_TOOLS=(
+    "ChatGPT|https://chat.openai.com/|OpenAI's conversational AI"
+    "Claude AI|https://claude.ai/|Anthropic's AI assistant"  
+    "Google Gemini|https://gemini.google.com/|Google's advanced AI"
+    "Perplexity|https://perplexity.ai/|AI-powered search"
+    "Groq|https://groq.com/|Ultra-fast AI inference"
+    "Bolt|https://bolt.new/|AI full-stack development"
+    "Lovable|https://lovable.dev/|AI app development"
+    "NotebookLM|https://notebooklm.google.com/|AI research tool"
+    "Hugging Face|https://huggingface.co/|AI model hub"
+    "Colab|https://colab.research.google.com/|Free GPU notebooks"
+)
+
+echo "🤖 AI Tools Launcher"
+echo "==================="
+echo ""
+
+# Create menu
+for i in "${!AI_TOOLS[@]}"; do
+    IFS='|' read -r name url desc <<< "${AI_TOOLS[$i]}"
+    echo "$((i+1)). $name - $desc"
+done
+
+echo ""
+echo "Enter tool number (1-${#AI_TOOLS[@]}) or 'q' to quit:"
+read -r choice
+
+if [ "$choice" = "q" ] || [ "$choice" = "Q" ]; then
+    exit 0
+fi
+
+# Validate input
+if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#AI_TOOLS[@]}" ]; then
+    IFS='|' read -r name url desc <<< "${AI_TOOLS[$((choice-1))]}"
+    echo "🚀 Launching $name..."
+    firefox --new-window --class="$name" "$url" &
+else
+    echo "❌ Invalid choice. Please enter a number between 1 and ${#AI_TOOLS[@]}"
+fi
+EOF
+
+chmod +x /usr/local/bin/ai-launcher
+
+# Create AI Tools launcher desktop application
+cat > /usr/share/applications/ai-launcher.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AI Launcher
+Comment=Quick launcher for AI tools and platforms
+Exec=xfce4-terminal --title="AI Tools Launcher" --command="ai-launcher"
+Icon=applications-science
+Terminal=true
+StartupNotify=true
+Categories=System;Utility;AI-Tools;
+Keywords=ai;launcher;tools;quick;access;
+EOF
+
+echo "I: AI web app launchers setup completed!"
+echo "   Created desktop applications for 11 AI tools"
+echo "   Added AI Tools category to application menu"
+echo "   Created desktop shortcuts for popular tools"
+echo "   Added AI Tools Dashboard and Launcher"

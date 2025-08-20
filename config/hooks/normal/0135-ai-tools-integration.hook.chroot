@@ -1,0 +1,353 @@
+#!/bin/bash
+
+# AI Tools Integration Hook for Nanite Linux AI/ML
+# Integrates AI tools into the desktop environment
+
+set -e
+
+echo "I: Integrating AI tools into desktop environment..."
+
+# Update XFCE Whiskermenu to include AI Tools category
+mkdir -p /etc/skel/.config/xfce4/panel
+
+# Create enhanced applications menu with AI tools prominence
+cat > /etc/skel/.config/xfce4/panel/whiskermenu-ai.rc << 'EOF'
+button-title=🤖 AI/ML
+button-icon=applications-science
+button-single-row=false
+show-button-title=true
+show-button-icon=true
+launcher-show-name=true
+launcher-show-description=true
+launcher-show-tooltip=true
+hover-switch-category=true
+category-hover-activate=true
+load-hierarchy=false
+recent-items-max=10
+favorites-in-recent=true
+position-search-alternate=true
+position-commands-alternate=false
+position-categories-alternate=true
+stay-on-focus-out=false
+
+[ai-tools]
+ai-launcher.desktop
+chatgpt.desktop
+claude-ai.desktop
+google-gemini.desktop
+perplexity.desktop
+groq.desktop
+bolt.desktop
+lovable.desktop
+notebooklm.desktop
+hugging-face.desktop
+google-colab.desktop
+EOF
+
+# Create AI tools desktop widget/conky for system information
+cat > /etc/skel/.config/conky/ai-tools-widget.conf << 'EOF'
+conky.config = {
+    alignment = 'top_right',
+    background = true,
+    border_width = 0,
+    cpu_avg_samples = 2,
+    default_color = 'white',
+    default_outline_color = 'white',
+    default_shade_color = 'white',
+    double_buffer = true,
+    draw_borders = false,
+    draw_graph_borders = true,
+    draw_outline = false,
+    draw_shades = false,
+    extra_newline = false,
+    font = 'Liberation Sans:size=9',
+    gap_x = 20,
+    gap_y = 50,
+    minimum_height = 5,
+    minimum_width = 5,
+    net_avg_samples = 2,
+    no_buffers = true,
+    out_to_console = false,
+    out_to_ncurses = false,
+    out_to_stderr = false,
+    out_to_x = true,
+    own_window = true,
+    own_window_class = 'Conky',
+    own_window_type = 'desktop',
+    own_window_transparent = true,
+    own_window_argb_visual = true,
+    own_window_argb_value = 150,
+    show_graph_range = false,
+    show_graph_scale = false,
+    stippled_borders = 0,
+    update_interval = 3.0,
+    uppercase = false,
+    use_spacer = 'none',
+    use_xft = true,
+}
+
+conky.text = [[
+🤖 ${color #4a90e2}AI/ML System Status${color}
+${hr}
+${color #27ae60}Python Environment:${color} ${if_running python3}✓ Active${else}○ Inactive${endif}
+${color #27ae60}Jupyter Server:${color} ${if_running jupyter}✓ Running${else}○ Stopped${endif}
+${color #27ae60}GPU Status:${color} ${if_existing /usr/bin/nvidia-smi}${exec nvidia-smi --query-gpu=name --format=csv,noheader,nounits | head -1}${else}CPU Only${endif}
+${color #e74c3c}Memory Usage:${color} $memperc% ${membar 4}
+${color #f39c12}CPU Usage:${color} $cpu% ${cpubar 4}
+
+${color #4a90e2}Quick AI Tools${color}
+${hr}
+• ChatGPT
+• Claude AI  
+• Google Gemini
+• Perplexity
+• Local Jupyter Lab
+]]
+EOF
+
+# Create startup script for AI environment
+cat > /etc/skel/.config/autostart/ai-environment-startup.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=AI Environment Startup
+Comment=Initialize AI/ML development environment
+Exec=bash -c 'sleep 10 && source ~/.bashrc && if [ -d ~/ai-ml-env ]; then echo "🤖 AI/ML environment ready"; else notify-send "AI/ML Setup" "Run setup-aiml-env to configure your development environment" -i applications-science; fi'
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Create AI tools quick access script
+cat > /usr/local/bin/ai-quick-access << 'EOF'
+#!/bin/bash
+# AI Quick Access Menu
+
+TOOL=$(zenity --list \
+    --title="🤖 AI Tools Quick Access" \
+    --text="Select an AI tool to launch:" \
+    --radiolist \
+    --column="Select" --column="AI Tool" --column="Description" \
+    TRUE "ChatGPT" "OpenAI's conversational AI assistant" \
+    FALSE "Claude AI" "Anthropic's AI for analysis and writing" \
+    FALSE "Google Gemini" "Google's advanced multimodal AI" \
+    FALSE "Perplexity" "AI-powered research and search" \
+    FALSE "Groq" "Ultra-fast AI inference platform" \
+    FALSE "Bolt" "AI full-stack development environment" \
+    FALSE "Lovable" "AI app development and code generation" \
+    FALSE "NotebookLM" "Google's AI research and note-taking" \
+    FALSE "Jupyter Lab" "Local AI/ML development environment" \
+    FALSE "AI Dashboard" "Comprehensive AI tools overview" \
+    --width=600 --height=400)
+
+case $TOOL in
+    "ChatGPT")
+        firefox --new-window --class="ChatGPT" "https://chat.openai.com/" &
+        ;;
+    "Claude AI")
+        firefox --new-window --class="Claude AI" "https://claude.ai/" &
+        ;;
+    "Google Gemini")
+        firefox --new-window --class="Google Gemini" "https://gemini.google.com/" &
+        ;;
+    "Perplexity")
+        firefox --new-window --class="Perplexity" "https://perplexity.ai/" &
+        ;;
+    "Groq")
+        firefox --new-window --class="Groq" "https://groq.com/" &
+        ;;
+    "Bolt")
+        firefox --new-window --class="Bolt" "https://bolt.new/" &
+        ;;
+    "Lovable")
+        firefox --new-window --class="Lovable" "https://lovable.dev/" &
+        ;;
+    "NotebookLM")
+        firefox --new-window --class="NotebookLM" "https://notebooklm.google.com/" &
+        ;;
+    "Jupyter Lab")
+        if [ -d ~/ai-ml-env ]; then
+            cd ~/AI-ML-Projects
+            source ~/ai-ml-env/bin/activate
+            jupyter lab &
+        else
+            zenity --info --text="Please run 'setup-aiml-env' first to configure your AI/ML environment"
+        fi
+        ;;
+    "AI Dashboard")
+        firefox --new-window "file://$HOME/.mozilla/firefox/nanite-aiml.default-esr/ai-tools-toolbar.html" &
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+EOF
+
+chmod +x /usr/local/bin/ai-quick-access
+
+# Create AI Quick Access desktop application
+cat > /usr/share/applications/ai-quick-access.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AI Quick Access
+Comment=Quick access menu for AI tools and platforms
+Exec=ai-quick-access
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=System;Utility;AI-Tools;
+Keywords=ai;quick;access;menu;tools;
+EOF
+
+# Create keyboard shortcut for AI tools
+mkdir -p /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml
+cat > /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+
+<channel name="xfce4-keyboard-shortcuts" version="1.0">
+  <property name="commands" type="empty">
+    <property name="default" type="empty">
+      <property name="&lt;Alt&gt;F1" type="string" value="xfce4-popup-whiskermenu"/>
+      <property name="&lt;Alt&gt;F2" type="string" value="xfrun4"/>
+      <property name="&lt;Alt&gt;F3" type="string" value="xfce4-appfinder"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;Delete" type="string" value="xflock4"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;l" type="string" value="xflock4"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;t" type="string" value="xfce4-terminal"/>
+      <property name="XF86Display" type="string" value="xfce4-display-settings --minimal"/>
+      <property name="&lt;Super&gt;p" type="string" value="xfce4-display-settings --minimal"/>
+      <property name="&lt;Primary&gt;Escape" type="string" value="xfdesktop --menu"/>
+      <property name="XF86WWW" type="string" value="firefox"/>
+      <property name="XF86Mail" type="string" value="thunderbird"/>
+      <!-- AI Tools Shortcuts -->
+      <property name="&lt;Super&gt;a" type="string" value="ai-quick-access"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;a" type="string" value="ai-launcher"/>
+      <property name="&lt;Super&gt;c" type="string" value="firefox --new-window --class='ChatGPT' https://chat.openai.com/"/>
+      <property name="&lt;Super&gt;j" type="string" value="bash -c 'cd ~/AI-ML-Projects && source ~/ai-ml-env/bin/activate 2>/dev/null && jupyter lab'"/>
+    </property>
+  </property>
+  <property name="xfwm4" type="empty">
+    <property name="default" type="empty">
+      <property name="&lt;Alt&gt;Insert" type="string" value="add_workspace_key"/>
+      <property name="Escape" type="string" value="cancel_key"/>
+      <property name="Left" type="string" value="left_key"/>
+      <property name="Right" type="string" value="right_key"/>
+      <property name="Up" type="string" value="up_key"/>
+      <property name="Down" type="string" value="down_key"/>
+      <property name="&lt;Alt&gt;Tab" type="string" value="cycle_windows_key"/>
+      <property name="&lt;Alt&gt;&lt;Shift&gt;Tab" type="string" value="cycle_reverse_windows_key"/>
+      <property name="&lt;Alt&gt;Delete" type="string" value="del_workspace_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;Down" type="string" value="down_workspace_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;Left" type="string" value="left_workspace_key"/>
+      <property name="&lt;Shift&gt;&lt;Alt&gt;Page_Down" type="string" value="lower_window_key"/>
+      <property name="&lt;Alt&gt;F4" type="string" value="close_window_key"/>
+      <property name="&lt;Alt&gt;F6" type="string" value="stick_window_key"/>
+      <property name="&lt;Alt&gt;F7" type="string" value="move_window_key"/>
+      <property name="&lt;Alt&gt;F8" type="string" value="resize_window_key"/>
+      <property name="&lt;Alt&gt;F9" type="string" value="hide_window_key"/>
+      <property name="&lt;Alt&gt;F10" type="string" value="maximize_window_key"/>
+      <property name="&lt;Alt&gt;F11" type="string" value="fullscreen_key"/>
+      <property name="&lt;Alt&gt;F12" type="string" value="above_key"/>
+      <property name="&lt;Primary&gt;&lt;Shift&gt;&lt;Alt&gt;Left" type="string" value="move_window_left_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;End" type="string" value="move_window_next_workspace_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;Home" type="string" value="move_window_prev_workspace_key"/>
+      <property name="&lt;Primary&gt;&lt;Shift&gt;&lt;Alt&gt;Right" type="string" value="move_window_right_key"/>
+      <property name="&lt;Primary&gt;&lt;Shift&gt;&lt;Alt&gt;Up" type="string" value="move_window_up_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;KP_1" type="string" value="move_window_workspace_1_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;KP_2" type="string" value="move_window_workspace_2_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;KP_3" type="string" value="move_window_workspace_3_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;KP_4" type="string" value="move_window_workspace_4_key"/>
+      <property name="&lt;Alt&gt;space" type="string" value="popup_menu_key"/>
+      <property name="&lt;Shift&gt;&lt;Alt&gt;Page_Up" type="string" value="raise_window_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;Right" type="string" value="right_workspace_key"/>
+      <property name="&lt;Primary&gt;&lt;Shift&gt;&lt;Alt&gt;Down" type="string" value="move_window_down_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;d" type="string" value="show_desktop_key"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;Up" type="string" value="up_workspace_key"/>
+      <property name="&lt;Super&gt;Tab" type="string" value="switch_window_key"/>
+      <property name="&lt;Primary&gt;F1" type="string" value="workspace_1_key"/>
+      <property name="&lt;Primary&gt;F2" type="string" value="workspace_2_key"/>
+      <property name="&lt;Primary&gt;F3" type="string" value="workspace_3_key"/>
+      <property name="&lt;Primary&gt;F4" type="string" value="workspace_4_key"/>
+    </property>
+  </property>
+</channel>
+EOF
+
+# Update Whisker Menu favorites to include AI tools
+cat > /etc/skel/.config/xfce4/panel/whiskermenu-1.rc << 'EOF'
+favorites=chatgpt.desktop,claude-ai.desktop,google-gemini.desktop,nanite-aiml-suite.desktop,jupyter-lab-nanite.desktop,firefox-esr.desktop,xfce4-terminal.desktop,thunar.desktop
+recent=
+button-icon=applications-science
+button-title=🤖 Nanite AI/ML
+button-tooltip=Nanite Linux AI/ML Distribution
+button-single-row=false
+show-button-title=true
+show-button-icon=true
+launcher-show-name=true
+launcher-show-description=true
+launcher-show-tooltip=true
+item-icon-size=2
+hover-switch-category=true
+category-hover-activate=true
+category-icon-size=1
+load-hierarchy=false
+view-as-icons=false
+default-category=0
+recent-items-max=10
+favorites-in-recent=true
+position-search-alternate=true
+position-commands-alternate=false
+position-categories-alternate=true
+stay-on-focus-out=false
+profile-shape=0
+confirm-session-command=true
+menu-width=450
+menu-height=500
+menu-opacity=100
+command-settings=xfce4-settings-manager
+command-lockscreen=xflock4
+command-switchuser=dm-tool switch-to-greeter
+command-logoutuser=xfce4-session-logout --logout --fast
+command-restart=xfce4-session-logout --reboot --fast
+command-shutdown=xfce4-session-logout --halt --fast
+command-suspend=xfce4-session-logout --suspend
+command-hibernate=xfce4-session-logout --hibernate
+command-logout=xfce4-session-logout
+command-menueditor=menulibre
+command-profile=mugshot
+search-actions=5
+
+[action0]
+name=Man Pages
+pattern=#
+command=exo-open --launch WebBrowser man:%s
+regex=false
+
+[action1]
+name=Web Search
+pattern=?
+command=exo-open --launch WebBrowser https://duckduckgo.com/?q=%u
+regex=false
+
+[action2]
+name=Wikipedia
+pattern=!w
+command=exo-open --launch WebBrowser https://en.wikipedia.org/wiki/%u
+regex=false
+
+[action3]
+name=Run in Terminal
+pattern=!
+command=xfce4-terminal --command="%s"
+regex=false
+
+[action4]
+name=Open URI
+pattern=^(file|http|https):\\/\\/(.*)$
+command=exo-open \\0
+regex=true
+EOF
+
+echo "I: AI tools integration completed!"
+echo "   Added AI tools to panel and favorites"
+echo "   Created keyboard shortcuts: Super+A (AI menu), Super+C (ChatGPT), Super+J (Jupyter)"
+echo "   Configured Whisker Menu with AI tools prominence"

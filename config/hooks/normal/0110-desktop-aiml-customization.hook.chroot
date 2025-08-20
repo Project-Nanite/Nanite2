@@ -1,0 +1,266 @@
+#!/bin/bash
+
+# Desktop AI/ML Customization Hook for Nanite Linux
+# Customizes XFCE desktop for AI/ML development workflow
+
+set -e
+
+echo "I: Customizing desktop environment for AI/ML development..."
+
+# Create AI/ML specific desktop applications
+mkdir -p /usr/share/applications
+
+# Add AI Tools quick access panel
+echo "🤖 Adding AI Tools to panel configuration..."
+
+# Create comprehensive AI/ML launcher
+cat > /usr/share/applications/nanite-aiml-suite.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Nanite AI/ML Suite
+Comment=Launch comprehensive AI/ML development environment
+Exec=bash -c 'source ~/ai-ml-env/bin/activate 2>/dev/null || setup-aiml-env; xfce4-terminal --title="AI/ML Terminal" --command="bash -c \"echo '\''🤖 Nanite AI/ML Development Environment'\''; echo '\''========================================='\''; echo '\''Available commands:'\''; echo '\''  • jupyter lab          - Launch Jupyter Lab'\''; echo '\''  • spyder              - Launch Spyder IDE'\''; echo '\''  • python              - Python interpreter'\''; echo '\''  • setup-aiml-env      - Setup AI/ML environment'\''; echo '\'\'\'\'\''; exec bash\"" &'
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Development;Science;Education;
+Keywords=ai;ml;machine;learning;python;jupyter;data;science;
+MimeType=text/x-python;
+EOF
+
+# Create Jupyter Lab desktop launcher
+cat > /usr/share/applications/jupyter-lab-nanite.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Jupyter Lab (AI/ML)
+Comment=Launch Jupyter Lab with AI/ML environment in your projects directory
+Exec=bash -c 'cd ~/AI-ML-Projects && source ~/ai-ml-env/bin/activate 2>/dev/null && jupyter lab || (setup-aiml-env && source ~/ai-ml-env/bin/activate && cd ~/AI-ML-Projects && jupyter lab)'
+Icon=jupyter
+Terminal=true
+StartupNotify=true
+Categories=Development;Science;Education;
+Keywords=jupyter;notebook;python;ai;ml;data;science;
+EOF
+
+# Create AI/ML Project Template Generator
+cat > /usr/share/applications/aiml-project-generator.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AI/ML Project Generator
+Comment=Create new AI/ML project with template structure
+Exec=bash -c 'mkdir -p ~/AI-ML-Projects && cd ~/AI-ML-Projects && zenity --forms --title="New AI/ML Project" --text="Create a new AI/ML project" --add-entry="Project Name:" --add-combo="Project Type:,Computer Vision,NLP,Time Series,Classification,Regression,Clustering,Deep Learning,Data Analysis" | { IFS="|" read name type; if [ -n "$name" ]; then mkdir -p "$name" && cd "$name" && mkdir -p {data,notebooks,src,models,docs,tests} && echo "# $name ($type)" > README.md && echo "Project '\''$name'\'' created successfully!" | zenity --info --title="Success"; else zenity --error --title="Error" --text="Project name cannot be empty"; fi; }'
+Icon=folder-new
+Terminal=false
+StartupNotify=true
+Categories=Development;Science;Utility;
+Keywords=ai;ml;project;template;generator;
+EOF
+
+# Create comprehensive wallpaper for AI/ML theme
+mkdir -p /usr/share/backgrounds/nanite-aiml
+cat > /usr/share/backgrounds/nanite-aiml/create-wallpaper.py << 'EOF'
+#!/usr/bin/env python3
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Rectangle
+import matplotlib.patches as patches
+
+# Create AI/ML themed wallpaper
+fig, ax = plt.subplots(figsize=(19.2, 10.8), facecolor='#1a1a1a')
+ax.set_facecolor('#1a1a1a')
+
+# Neural network visualization
+np.random.seed(42)
+layers = [4, 6, 6, 3]
+layer_pos = np.linspace(0.1, 0.9, len(layers))
+
+# Draw neural network
+for i, (layer_size, x) in enumerate(zip(layers, layer_pos)):
+    y_positions = np.linspace(0.2, 0.8, layer_size)
+    
+    # Draw connections to next layer
+    if i < len(layers) - 1:
+        next_y = np.linspace(0.2, 0.8, layers[i + 1])
+        for y1 in y_positions:
+            for y2 in next_y:
+                ax.plot([x, layer_pos[i + 1]], [y1, y2], 
+                       color='#4a90e2', alpha=0.3, linewidth=0.5)
+    
+    # Draw nodes
+    for y in y_positions:
+        circle = plt.Circle((x, y), 0.02, color='#4a90e2', alpha=0.8)
+        ax.add_patch(circle)
+
+# Add AI/ML themed text
+ax.text(0.5, 0.95, '🤖 Nanite Linux AI/ML', 
+        fontsize=32, color='white', ha='center', va='center', 
+        weight='bold', alpha=0.9)
+ax.text(0.5, 0.05, 'Machine Learning • Deep Learning • Data Science', 
+        fontsize=18, color='#4a90e2', ha='center', va='center', alpha=0.8)
+
+# Add some data visualization elements
+x_data = np.linspace(0, 10, 100)
+y_data = np.sin(x_data) * 0.1 + 0.15
+ax.plot(np.linspace(0.05, 0.25, 100), y_data, color='#27ae60', alpha=0.6, linewidth=2)
+
+# Add binary pattern background
+for i in range(0, 50):
+    for j in range(0, 30):
+        if np.random.random() > 0.85:
+            ax.text(i/50, j/30, str(np.random.randint(0, 2)), 
+                   fontsize=6, color='#2c3e50', alpha=0.3, ha='center')
+
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+ax.axis('off')
+
+plt.tight_layout()
+plt.savefig('/usr/share/backgrounds/nanite-aiml/ai-ml-wallpaper.png', 
+            dpi=100, bbox_inches='tight', facecolor='#1a1a1a')
+plt.close()
+
+print("AI/ML wallpaper created successfully!")
+EOF
+
+# Execute wallpaper creation if matplotlib is available
+python3 /usr/share/backgrounds/nanite-aiml/create-wallpaper.py 2>/dev/null || {
+    echo "Matplotlib not available yet, wallpaper will be created on first boot"
+}
+
+# Create custom XFCE panel layout for AI/ML
+mkdir -p /etc/skel/.config/xfce4/panel
+cat > /etc/skel/.config/xfce4/panel/ai-ml-panel.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfce4-panel" version="1.0">
+  <property name="configver" type="int" value="2"/>
+  <property name="panels" type="array">
+    <value type="int" value="1"/>
+    <value type="int" value="2"/>
+  </property>
+  
+  <!-- Top Panel: AI/ML focused -->
+  <property name="panel-1" type="empty">
+    <property name="position" type="string" value="p=6;x=0;y=0"/>
+    <property name="length" type="uint" value="100"/>
+    <property name="position-locked" type="bool" value="true"/>
+    <property name="size" type="uint" value="48"/>
+    <property name="plugin-ids" type="array">
+      <value type="int" value="1"/> <!-- Whisker Menu -->
+      <value type="int" value="2"/> <!-- Separator -->
+      <value type="int" value="3"/> <!-- AI/ML Suite -->
+      <value type="int" value="4"/> <!-- Jupyter -->
+      <value type="int" value="5"/> <!-- VSCode -->
+      <value type="int" value="6"/> <!-- Terminal -->
+      <value type="int" value="7"/> <!-- Separator -->
+      <value type="int" value="8"/> <!-- System Load -->
+      <value type="int" value="9"/> <!-- CPU Graph -->
+      <value type="int" value="10"/> <!-- Clock -->
+      <value type="int" value="11"/> <!-- AI Tools Launcher -->
+      <value type="int" value="12"/> <!-- Action Buttons -->
+    </property>
+  </property>
+  
+  <!-- AI Tools Launcher -->
+  <property name="plugin-11" type="string" value="launcher">
+    <property name="items" type="array">
+      <value type="string" value="ai-launcher.desktop"/>
+      <value type="string" value="chatgpt.desktop"/>
+      <value type="string" value="claude-ai.desktop"/>
+      <value type="string" value="google-gemini.desktop"/>
+    </property>
+  </property>
+  
+  <!-- AI/ML Suite Launcher -->
+  <property name="plugin-3" type="string" value="launcher">
+    <property name="items" type="array">
+      <value type="string" value="nanite-aiml-suite.desktop"/>
+    </property>
+  </property>
+  
+  <!-- Jupyter Launcher -->
+  <property name="plugin-4" type="string" value="launcher">
+    <property name="items" type="array">
+      <value type="string" value="jupyter-lab-nanite.desktop"/>
+    </property>
+  </property>
+</channel>
+EOF
+
+# Create quick start script for new AI/ML users
+cat > /usr/local/bin/aiml-welcome << 'EOF'
+#!/bin/bash
+# AI/ML Welcome and Quick Start Script
+
+zenity --info --width=500 --height=300 --title="🤖 Welcome to Nanite AI/ML" --text="
+<big><b>Welcome to Nanite Linux AI/ML Distribution!</b></big>
+
+🚀 <b>Quick Start:</b>
+• Click 'Setup AI/ML Environment' to configure Python packages
+• Open Jupyter Lab from desktop or applications menu  
+• Browse ~/AI-ML-Projects for your workspace
+• Check Firefox bookmarks for AI/ML resources
+
+📚 <b>Pre-installed Tools:</b>
+• TensorFlow & PyTorch for deep learning
+• Scikit-learn for machine learning
+• Pandas & NumPy for data analysis
+• Matplotlib & Seaborn for visualization
+• Jupyter Lab & Spyder IDE
+
+🎯 <b>Sample Projects:</b>
+• Computer Vision with CNNs
+• Natural Language Processing  
+• Time Series Prediction
+• Data Visualization Dashboards
+
+Happy coding! 🎉"
+
+# Ask if user wants to setup AI/ML environment now
+if zenity --question --title="Setup AI/ML Environment" --text="Would you like to setup your AI/ML Python environment now?\n\nThis will install additional packages and create your development workspace."; then
+    xfce4-terminal --title="AI/ML Setup" --command="bash -c 'setup-aiml-env; echo; echo \"Press Enter to continue...\"; read'"
+fi
+EOF
+
+chmod +x /usr/local/bin/aiml-welcome
+
+# Create autostart entry for first-time setup
+mkdir -p /etc/skel/.config/autostart
+cat > /etc/skel/.config/autostart/aiml-welcome.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=AI/ML Welcome
+Comment=First-time AI/ML setup and welcome
+Exec=bash -c 'sleep 5 && aiml-welcome'
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Create menu structure for AI/ML applications
+mkdir -p /etc/xdg/menus/applications-merged
+cat > /etc/xdg/menus/applications-merged/nanite-aiml.menu << 'EOF'
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+ "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
+<Menu>
+  <Name>Applications</Name>
+  <Menu>
+    <Name>AI-ML</Name>
+    <Directory>nanite-aiml.directory</Directory>
+    <Include>
+      <And>
+        <Category>Science</Category>
+        <Or>
+          <Category>Development</Category>
+          <Category>Education</Category>
+        </Or>
+      </And>
+    </Include>
+  </Menu>
+</Menu>
+EOF
+
+echo "I: Desktop AI/ML customization completed!"
+echo "   Desktop now optimized for AI/ML development workflow"

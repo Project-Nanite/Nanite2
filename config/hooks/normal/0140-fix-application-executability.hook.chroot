@@ -1,0 +1,569 @@
+#!/bin/bash
+
+# Fix Application Executability Hook for Nanite Linux AI/ML
+# Ensures all applications work properly and are executable
+
+set -e
+
+echo "I: Fixing application executability and functionality..."
+
+# Fix desktop file permissions in all locations
+echo "🔧 Fixing desktop file permissions..."
+
+# Make all desktop files executable
+find /usr/share/applications -name "*.desktop" -exec chmod +x {} \; 2>/dev/null || true
+find /etc/skel/Desktop -name "*.desktop" -exec chmod +x {} \; 2>/dev/null || true
+
+# Ensure application directories exist
+mkdir -p /usr/share/applications
+mkdir -p /etc/skel/Desktop
+mkdir -p /etc/skel/.local/share/applications
+
+# Create working Jupyter Lab launcher
+echo "📊 Creating functional Jupyter Lab launcher..."
+
+cat > /usr/share/applications/jupyter-lab.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Jupyter Lab
+Comment=Launch Jupyter Lab for AI/ML Development
+Exec=nanite-jupyter-launcher
+Icon=jupyter-lab
+Terminal=false
+StartupNotify=true
+Categories=Development;Science;Education;
+Keywords=jupyter;notebook;python;ai;ml;data;science;
+EOF
+
+chmod +x /usr/share/applications/jupyter-lab.desktop
+
+# Create working Jupyter launcher script
+cat > /usr/local/bin/nanite-jupyter-launcher << 'EOF'
+#!/bin/bash
+# Nanite Jupyter Lab Launcher
+
+set -e
+
+# Function to show error dialog
+show_error() {
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --error --title="Jupyter Lab Error" --text="$1"
+    else
+        xfce4-terminal --title="Error" --command="bash -c 'echo \"ERROR: $1\"; echo \"Press Enter to close...\"; read'"
+    fi
+}
+
+# Function to show info dialog
+show_info() {
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --info --title="Jupyter Lab" --text="$1"
+    else
+        notify-send "Jupyter Lab" "$1" || echo "$1"
+    fi
+}
+
+# Check if Python is available
+if ! command -v python3 >/dev/null 2>&1; then
+    show_error "Python 3 is not installed. Please install Python first."
+    exit 1
+fi
+
+# Create projects directory if it doesn't exist
+mkdir -p ~/AI-ML-Projects
+cd ~/AI-ML-Projects
+
+# Check if virtual environment exists
+if [ -d ~/ai-ml-env ]; then
+    # Activate virtual environment
+    source ~/ai-ml-env/bin/activate
+    
+    # Check if Jupyter is installed in the environment
+    if command -v jupyter >/dev/null 2>&1; then
+        echo "🚀 Starting Jupyter Lab..."
+        show_info "Starting Jupyter Lab in AI/ML Projects directory..."
+        jupyter lab --notebook-dir=~/AI-ML-Projects --ip=127.0.0.1 --port=8888 --no-browser &
+        
+        # Wait a moment for server to start
+        sleep 3
+        
+        # Open in Firefox if available
+        if command -v firefox >/dev/null 2>&1; then
+            firefox --new-window "http://localhost:8888" &
+        fi
+    else
+        show_error "Jupyter Lab is not installed in the AI/ML environment. Please run 'setup-aiml-env' first."
+    fi
+else
+    # No virtual environment - try system Jupyter
+    if command -v jupyter >/dev/null 2>&1; then
+        echo "🚀 Starting Jupyter Lab (system-wide)..."
+        show_info "Starting Jupyter Lab..."
+        jupyter lab --notebook-dir=~/AI-ML-Projects --ip=127.0.0.1 --port=8888 --no-browser &
+        sleep 3
+        if command -v firefox >/dev/null 2>&1; then
+            firefox --new-window "http://localhost:8888" &
+        fi
+    else
+        # No Jupyter available - offer to install
+        if command -v zenity >/dev/null 2>&1; then
+            if zenity --question --title="Jupyter Lab Not Found" --text="Jupyter Lab is not installed. Would you like to set up the AI/ML environment now?"; then
+                xfce4-terminal --title="AI/ML Environment Setup" --command="setup-aiml-env" &
+            fi
+        else
+            show_error "Jupyter Lab is not installed. Please run 'setup-aiml-env' to set up the AI/ML environment."
+        fi
+    fi
+fi
+EOF
+
+chmod +x /usr/local/bin/nanite-jupyter-launcher
+
+# Create working Spyder launcher
+echo "🐍 Creating functional Spyder launcher..."
+
+cat > /usr/share/applications/spyder.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Spyder
+Comment=Scientific Python Development Environment
+Exec=nanite-spyder-launcher
+Icon=spyder
+Terminal=false
+StartupNotify=true
+Categories=Development;Science;Education;
+Keywords=python;ide;scientific;spyder;development;
+EOF
+
+chmod +x /usr/share/applications/spyder.desktop
+
+# Create Spyder launcher script
+cat > /usr/local/bin/nanite-spyder-launcher << 'EOF'
+#!/bin/bash
+# Nanite Spyder Launcher
+
+set -e
+
+# Function to show error dialog
+show_error() {
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --error --title="Spyder Error" --text="$1"
+    else
+        notify-send "Spyder Error" "$1" || echo "ERROR: $1"
+    fi
+}
+
+# Check if virtual environment exists and has Spyder
+if [ -d ~/ai-ml-env ]; then
+    source ~/ai-ml-env/bin/activate
+    if command -v spyder >/dev/null 2>&1; then
+        cd ~/AI-ML-Projects
+        spyder &
+        exit 0
+    fi
+fi
+
+# Try system Spyder
+if command -v spyder >/dev/null 2>&1; then
+    cd ~/AI-ML-Projects
+    spyder &
+elif command -v spyder3 >/dev/null 2>&1; then
+    cd ~/AI-ML-Projects
+    spyder3 &
+else
+    show_error "Spyder is not installed. Please run 'setup-aiml-env' to install it."
+fi
+EOF
+
+chmod +x /usr/local/bin/nanite-spyder-launcher
+
+# Fix AI tool desktop launchers
+echo "🤖 Fixing AI tool launchers..."
+
+# Create working ChatGPT launcher
+cat > /usr/share/applications/chatgpt.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ChatGPT
+Comment=OpenAI's ChatGPT AI Assistant
+Exec=firefox --new-window --class="ChatGPT" "https://chat.openai.com/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;
+Keywords=chatgpt;openai;ai;assistant;chat;
+StartupWMClass=ChatGPT
+EOF
+
+chmod +x /usr/share/applications/chatgpt.desktop
+
+# Create working Claude AI launcher
+cat > /usr/share/applications/claude-ai.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Claude AI
+Comment=Anthropic's Claude AI Assistant
+Exec=firefox --new-window --class="Claude AI" "https://claude.ai/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;
+Keywords=claude;anthropic;ai;assistant;
+StartupWMClass=Claude AI
+EOF
+
+chmod +x /usr/share/applications/claude-ai.desktop
+
+# Create working Google Gemini launcher
+cat > /usr/share/applications/google-gemini.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Google Gemini
+Comment=Google's Advanced AI Model
+Exec=firefox --new-window --class="Google Gemini" "https://gemini.google.com/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;
+Keywords=gemini;google;ai;assistant;
+StartupWMClass=Google Gemini
+EOF
+
+chmod +x /usr/share/applications/google-gemini.desktop
+
+# Create working Perplexity launcher
+cat > /usr/share/applications/perplexity.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Perplexity
+Comment=AI-Powered Search and Research
+Exec=firefox --new-window --class="Perplexity" "https://perplexity.ai/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;
+Keywords=perplexity;ai;search;research;
+StartupWMClass=Perplexity
+EOF
+
+chmod +x /usr/share/applications/perplexity.desktop
+
+# Create comprehensive AI/ML environment setup script (fixed version)
+echo "🛠️ Creating robust AI/ML environment setup..."
+
+cat > /usr/local/bin/setup-aiml-env << 'EOF'
+#!/bin/bash
+# Nanite AI/ML Environment Setup Script (Fixed Version)
+
+set -e
+
+echo "🤖 Nanite AI/ML Environment Setup"
+echo "=================================="
+
+# Function to show progress
+show_progress() {
+    echo "📋 $1"
+}
+
+# Function to show error
+show_error() {
+    echo "❌ ERROR: $1" >&2
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --error --title="Setup Error" --text="$1"
+    fi
+}
+
+# Function to show success
+show_success() {
+    echo "✅ $1"
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send "AI/ML Setup" "$1" -i applications-science
+    fi
+}
+
+# Check if Python is available
+if ! command -v python3 >/dev/null 2>&1; then
+    show_error "Python 3 is not available. Please install Python first."
+    exit 1
+fi
+
+# Check if pip is available
+if ! command -v pip3 >/dev/null 2>&1; then
+    show_error "pip3 is not available. Please install python3-pip first."
+    exit 1
+fi
+
+# Create project directories
+show_progress "Creating project directories..."
+mkdir -p ~/AI-ML-Projects/{notebooks,datasets,models,scripts}
+mkdir -p ~/AI-ML-Learning
+
+# Create or update requirements file
+show_progress "Creating requirements file..."
+cat > ~/ai-ml-requirements.txt << 'REQS_EOF'
+# Core Data Science
+numpy>=1.21.0
+pandas>=1.3.0
+matplotlib>=3.4.0
+seaborn>=0.11.0
+scipy>=1.7.0
+scikit-learn>=1.0.0
+
+# Jupyter Environment
+jupyterlab>=3.3.0
+notebook>=6.4.0
+ipython>=7.30.0
+ipywidgets>=7.6.0
+
+# Development Tools
+spyder>=5.2.0
+
+# Visualization
+plotly>=5.0.0
+
+# Basic ML/AI (CPU versions for compatibility)
+tensorflow-cpu>=2.8.0
+torch>=1.11.0 --index-url https://download.pytorch.org/whl/cpu
+torchvision>=0.12.0 --index-url https://download.pytorch.org/whl/cpu
+
+# Utility Libraries
+requests>=2.27.0
+tqdm>=4.62.0
+REQS_EOF
+
+# Create virtual environment if it doesn't exist
+if [ ! -d ~/ai-ml-env ]; then
+    show_progress "Creating Python virtual environment..."
+    python3 -m venv ~/ai-ml-env
+fi
+
+# Activate virtual environment
+show_progress "Activating virtual environment..."
+source ~/ai-ml-env/bin/activate
+
+# Upgrade pip
+show_progress "Upgrading pip..."
+pip install --upgrade pip setuptools wheel
+
+# Install packages
+show_progress "Installing AI/ML packages (this may take a few minutes)..."
+pip install -r ~/ai-ml-requirements.txt
+
+# Create desktop shortcuts
+show_progress "Creating desktop shortcuts..."
+
+# Jupyter Lab shortcut
+cat > ~/Desktop/jupyter-lab.desktop << 'JUPYTER_EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Jupyter Lab
+Comment=Launch Jupyter Lab for AI/ML
+Exec=nanite-jupyter-launcher
+Icon=jupyter-lab
+Terminal=false
+StartupNotify=true
+Categories=Development;Science;
+EOF
+
+chmod +x ~/Desktop/jupyter-lab.desktop
+
+# Spyder shortcut
+cat > ~/Desktop/spyder.desktop << 'SPYDER_EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Spyder
+Comment=Scientific Python IDE
+Exec=nanite-spyder-launcher
+Icon=spyder
+Terminal=false
+StartupNotify=true
+Categories=Development;Science;
+SPYDER_EOF
+
+chmod +x ~/Desktop/spyder.desktop
+
+# Create sample notebook
+show_progress "Creating sample notebook..."
+cat > ~/AI-ML-Projects/notebooks/getting-started.ipynb << 'NOTEBOOK_EOF'
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 🤖 Welcome to Nanite AI/ML Environment\n",
+    "\n",
+    "This notebook demonstrates your AI/ML setup is working correctly."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Test imports\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "import seaborn as sns\n",
+    "\n",
+    "print(\"🎉 All packages imported successfully!\")\n",
+    "print(f\"NumPy version: {np.__version__}\")\n",
+    "print(f\"Pandas version: {pd.__version__}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Create a simple plot\n",
+    "x = np.linspace(0, 10, 100)\n",
+    "y = np.sin(x)\n",
+    "\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "plt.plot(x, y, 'b-', label='sin(x)')\n",
+    "plt.title('🌊 Sample Plot - Sine Wave')\n",
+    "plt.xlabel('x')\n",
+    "plt.ylabel('sin(x)')\n",
+    "plt.legend()\n",
+    "plt.grid(True, alpha=0.3)\n",
+    "plt.show()\n",
+    "\n",
+    "print(\"✅ Plotting works correctly!\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python",
+   "version": "3.9.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
+NOTEBOOK_EOF
+
+show_success "AI/ML environment setup completed successfully!"
+
+echo ""
+echo "🎯 Setup Summary:"
+echo "  ✅ Virtual environment created: ~/ai-ml-env"
+echo "  ✅ AI/ML packages installed"
+echo "  ✅ Project directories created: ~/AI-ML-Projects"
+echo "  ✅ Desktop shortcuts created"
+echo "  ✅ Sample notebook created"
+echo ""
+echo "🚀 Quick Start:"
+echo "  • Double-click Jupyter Lab on desktop"
+echo "  • Double-click Spyder on desktop"
+echo "  • Or use Applications → Development menu"
+echo ""
+echo "📁 Your workspace: ~/AI-ML-Projects"
+echo "📓 Sample notebook: ~/AI-ML-Projects/notebooks/getting-started.ipynb"
+EOF
+
+chmod +x /usr/local/bin/setup-aiml-env
+
+# Create Python environment checker
+cat > /usr/local/bin/check-aiml-env << 'EOF'
+#!/bin/bash
+# Check AI/ML Environment Status
+
+echo "🤖 Nanite AI/ML Environment Status"
+echo "=================================="
+
+# Check virtual environment
+if [ -d ~/ai-ml-env ]; then
+    echo "✅ Virtual environment: EXISTS"
+    source ~/ai-ml-env/bin/activate
+    
+    # Check key packages
+    echo "📦 Package Status:"
+    packages=("numpy" "pandas" "matplotlib" "jupyterlab" "spyder")
+    
+    for package in "${packages[@]}"; do
+        if python -c "import $package" 2>/dev/null; then
+            version=$(python -c "import $package; print($package.__version__)" 2>/dev/null || echo "unknown")
+            echo "  ✅ $package: $version"
+        else
+            echo "  ❌ $package: NOT INSTALLED"
+        fi
+    done
+else
+    echo "❌ Virtual environment: NOT FOUND"
+    echo "   Run 'setup-aiml-env' to create it"
+fi
+
+# Check directories
+echo ""
+echo "📁 Directory Status:"
+dirs=("~/AI-ML-Projects" "~/AI-ML-Projects/notebooks" "~/AI-ML-Projects/datasets")
+for dir in "${dirs[@]}"; do
+    if [ -d "$dir" ]; then
+        echo "  ✅ $dir"
+    else
+        echo "  ❌ $dir: MISSING"
+    fi
+done
+EOF
+
+chmod +x /usr/local/bin/check-aiml-env
+
+# Copy working desktop files to skeleton
+echo "📋 Setting up desktop shortcuts for new users..."
+
+cp /usr/share/applications/chatgpt.desktop /etc/skel/Desktop/ 2>/dev/null || true
+cp /usr/share/applications/claude-ai.desktop /etc/skel/Desktop/ 2>/dev/null || true  
+cp /usr/share/applications/google-gemini.desktop /etc/skel/Desktop/ 2>/dev/null || true
+cp /usr/share/applications/jupyter-lab.desktop /etc/skel/Desktop/ 2>/dev/null || true
+
+# Make all skeleton desktop files executable
+chmod +x /etc/skel/Desktop/*.desktop 2>/dev/null || true
+
+# Update .bashrc for users
+cat >> /etc/skel/.bashrc << 'EOF'
+
+# Nanite AI/ML Environment
+# Auto-activate AI/ML environment in new terminals if it exists
+if [ -d ~/ai-ml-env ] && [ -z "$VIRTUAL_ENV" ]; then
+    source ~/ai-ml-env/bin/activate 2>/dev/null || true
+fi
+
+# AI/ML aliases
+alias jupyter-lab='nanite-jupyter-launcher'
+alias spyder='nanite-spyder-launcher'
+alias check-env='check-aiml-env'
+alias setup-env='setup-aiml-env'
+
+# Welcome message for new users
+if [ ! -f ~/.nanite-welcome-shown ]; then
+    echo "🤖 Welcome to Nanite Linux AI/ML Edition!"
+    echo "Run 'setup-aiml-env' to configure your development environment"
+    touch ~/.nanite-welcome-shown
+fi
+EOF
+
+echo "I: Application executability fixes completed!"
+echo "   ✅ All desktop files are now executable"  
+echo "   ✅ Robust launcher scripts created"
+echo "   ✅ Jupyter Lab launcher fixed"
+echo "   ✅ Spyder launcher fixed"
+echo "   ✅ AI tools launchers fixed"
+echo "   ✅ Setup scripts made executable"
+echo "   ✅ Environment checking tools added"

@@ -1,0 +1,237 @@
+#!/bin/bash
+
+# Application Final Fixes Hook for Nanite Linux AI/ML
+# Final verification and fixes for all applications
+
+set -e
+
+echo "I: Applying final application fixes..."
+
+# Ensure all critical scripts are executable
+chmod +x /usr/local/bin/setup-aiml-env 2>/dev/null || true
+chmod +x /usr/local/bin/nanite-jupyter-launcher 2>/dev/null || true
+chmod +x /usr/local/bin/nanite-spyder-launcher 2>/dev/null || true
+chmod +x /usr/local/bin/check-aiml-env 2>/dev/null || true
+chmod +x /usr/local/bin/ai-launcher 2>/dev/null || true
+chmod +x /usr/local/bin/ai-quick-access 2>/dev/null || true
+
+# Fix any desktop files that might not be executable
+find /usr/share/applications -name "*.desktop" -exec chmod 644 {} \; 2>/dev/null || true
+find /etc/skel/Desktop -name "*.desktop" -exec chmod +x {} \; 2>/dev/null || true
+
+# Create a comprehensive AI/ML environment setup desktop shortcut
+cat > /etc/skel/Desktop/setup-ai-ml-environment.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Setup AI/ML Environment
+Comment=Configure your AI/ML development environment
+Exec=xfce4-terminal --title="AI/ML Environment Setup" --command="setup-aiml-env"
+Icon=applications-science
+Terminal=true
+StartupNotify=true
+Categories=Development;Science;System;
+Keywords=ai;ml;setup;environment;python;jupyter;
+EOF
+
+chmod +x /etc/skel/Desktop/setup-ai-ml-environment.desktop
+
+# Create AI/ML status checker desktop shortcut
+cat > /etc/skel/Desktop/check-ai-ml-status.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Check AI/ML Status
+Comment=Check the status of your AI/ML environment
+Exec=xfce4-terminal --title="AI/ML Environment Status" --command="bash -c 'check-aiml-env; echo; echo \"Press Enter to close...\"; read'"
+Icon=utilities-system-monitor
+Terminal=true
+StartupNotify=true
+Categories=Development;Science;System;
+Keywords=ai;ml;check;status;environment;
+EOF
+
+chmod +x /etc/skel/Desktop/check-ai-ml-status.desktop
+
+# Update Firefox to have better AI tools access
+mkdir -p /etc/skel/.mozilla/firefox/nanite-aiml.default-esr/chrome
+cat > /etc/skel/.mozilla/firefox/nanite-aiml.default-esr/chrome/userChrome.css << 'EOF'
+/* Custom styles for AI tools in Firefox */
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+/* Make AI tool windows more app-like */
+window[class="ChatGPT"] #main-window,
+window[class="Claude AI"] #main-window,
+window[class="Google Gemini"] #main-window,
+window[class="Perplexity"] #main-window {
+    background-color: #1a1a1a !important;
+}
+EOF
+
+# Create system-wide desktop application updates script
+cat > /usr/local/bin/update-desktop-database << 'EOF'
+#!/bin/bash
+# Update desktop database for Nanite AI/ML applications
+
+echo "🔄 Updating desktop application database..."
+
+# Update desktop database
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database /usr/share/applications 2>/dev/null || true
+    update-desktop-database ~/.local/share/applications 2>/dev/null || true
+fi
+
+# Update icon cache
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache /usr/share/icons/hicolor 2>/dev/null || true
+fi
+
+# Update MIME database
+if command -v update-mime-database >/dev/null 2>&1; then
+    update-mime-database /usr/share/mime 2>/dev/null || true
+fi
+
+echo "✅ Desktop database updated successfully!"
+EOF
+
+chmod +x /usr/local/bin/update-desktop-database
+
+# Ensure Python packages will be available
+echo "🐍 Setting up Python package environment..."
+
+# Create system-wide Python configuration
+cat > /etc/environment << 'EOF'
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+LANG="en_US.UTF-8"
+LANGUAGE="en_US:en"
+LC_ALL="en_US.UTF-8"
+
+# Python configuration
+PYTHONPATH="/usr/lib/python3/dist-packages:/usr/local/lib/python3.11/site-packages"
+PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# AI/ML Environment
+JUPYTER_CONFIG_DIR="/etc/jupyter"
+JUPYTER_DATA_DIR="/usr/local/share/jupyter"
+EOF
+
+# Create Jupyter system configuration
+mkdir -p /etc/jupyter
+cat > /etc/jupyter/jupyter_lab_config.py << 'EOF'
+# Jupyter Lab configuration for Nanite AI/ML
+
+c.ServerApp.ip = '127.0.0.1'
+c.ServerApp.port = 8888
+c.ServerApp.open_browser = False
+c.ServerApp.notebook_dir = '~/AI-ML-Projects'
+c.ServerApp.allow_remote_access = False
+c.LabApp.default_url = '/lab'
+
+# Security settings
+c.ServerApp.token = ''
+c.ServerApp.password = ''
+c.ServerApp.disable_check_xsrf = True
+
+# UI settings
+c.LabApp.collaborative = False
+EOF
+
+# Create system-wide pip configuration
+mkdir -p /etc/pip
+cat > /etc/pip/pip.conf << 'EOF'
+[global]
+disable-pip-version-check = true
+timeout = 30
+retries = 3
+
+[install]
+trusted-host = pypi.org
+               pypi.python.org
+               files.pythonhosted.org
+EOF
+
+# Add desktop integration for Python applications
+cat > /usr/share/applications/python-idle.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Python IDLE
+Comment=Python Integrated Development Environment
+Exec=idle3
+Icon=python
+Terminal=false
+StartupNotify=true
+Categories=Development;IDE;
+Keywords=python;idle;development;programming;
+EOF
+
+chmod 644 /usr/share/applications/python-idle.desktop
+
+# Create comprehensive application test script
+cat > /usr/local/bin/test-all-apps << 'EOF'
+#!/bin/bash
+# Test All Applications
+
+echo "🧪 Testing All Nanite AI/ML Applications"
+echo "========================================"
+
+test_app() {
+    local app_name="$1"
+    local test_command="$2"
+    
+    echo -n "Testing $app_name... "
+    if eval "$test_command" >/dev/null 2>&1; then
+        echo "✅ OK"
+        return 0
+    else
+        echo "❌ FAILED"
+        return 1
+    fi
+}
+
+# Test system applications
+test_app "Python 3" "python3 --version"
+test_app "pip3" "pip3 --version"
+test_app "Firefox" "firefox --version"
+test_app "Git" "git --version"
+
+# Test AI/ML scripts
+test_app "setup-aiml-env script" "test -x /usr/local/bin/setup-aiml-env"
+test_app "jupyter launcher" "test -x /usr/local/bin/nanite-jupyter-launcher"
+test_app "spyder launcher" "test -x /usr/local/bin/nanite-spyder-launcher"
+test_app "environment checker" "test -x /usr/local/bin/check-aiml-env"
+
+# Test desktop files
+test_app "ChatGPT desktop file" "test -f /usr/share/applications/chatgpt.desktop"
+test_app "Jupyter Lab desktop file" "test -f /usr/share/applications/jupyter-lab.desktop"
+test_app "Setup desktop shortcut" "test -f /etc/skel/Desktop/setup-ai-ml-environment.desktop"
+
+echo ""
+echo "🎯 Application test completed!"
+echo "   If any tests failed, run this script as root to diagnose issues."
+EOF
+
+chmod +x /usr/local/bin/test-all-apps
+
+# Final permissions fix
+echo "🔐 Applying final permission fixes..."
+
+# Fix all script permissions
+find /usr/local/bin -name "*aiml*" -exec chmod +x {} \; 2>/dev/null || true
+find /usr/local/bin -name "*jupyter*" -exec chmod +x {} \; 2>/dev/null || true  
+find /usr/local/bin -name "*spyder*" -exec chmod +x {} \; 2>/dev/null || true
+find /usr/local/bin -name "*ai-*" -exec chmod +x {} \; 2>/dev/null || true
+
+# Ensure desktop files in skeleton are executable
+find /etc/skel/Desktop -name "*.desktop" -exec chmod +x {} \; 2>/dev/null || true
+
+# Create success indicator
+touch /etc/nanite-aiml-setup-complete
+
+echo "I: Application final fixes completed!"
+echo "   ✅ All scripts are executable"
+echo "   ✅ Desktop files have correct permissions"
+echo "   ✅ Python environment configured"
+echo "   ✅ Jupyter configuration created"
+echo "   ✅ System integration completed"
+echo "   ✅ Application testing tools added"

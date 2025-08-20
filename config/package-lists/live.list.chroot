@@ -1,0 +1,224 @@
+live-boot
+live-config
+live-config-systemd
+systemd-sysv
+
+# Base System
+grub-pc
+
+
+# Plymouth Boot Splash
+plymouth
+plymouth-themes
+
+# Essential System Tools
+systemd
+systemd-sysv
+dbus
+udev
+apt-transport-https
+ca-certificates
+wget
+curl
+gnupg
+feh
+
+# Network & Hardware
+network-manager
+network-manager-gnome
+wireless-tools
+wpasupplicant
+firmware-linux-free
+firmware-linux-nonfree
+bluetooth
+bluez
+pulseaudio
+pulseaudio-module-bluetooth
+alsa-utils
+
+# XFCE Desktop Environment - Complete Suite
+xfce4
+xfce4-goodies
+xfce4-terminal
+xfce4-taskmanager
+xfce4-screenshooter
+xfce4-clipman-plugin
+xfce4-systemload-plugin
+xfce4-netload-plugin
+xfce4-weather-plugin
+xfce4-whiskermenu-plugin
+xfce4-pulseaudio-plugin
+
+# Window Manager & Compositor
+xfwm4
+
+
+# File Manager & Utilities
+thunar
+thunar-volman
+thunar-archive-plugin
+thunar-media-tags-plugin
+file-roller
+
+firefox-esr
+mousepad
+# ristretto
+# libreoffice-writer
+# libreoffice-calc
+# libreoffice-impress
+
+# Beautiful Modern Fonts for Claymorphism
+fonts-liberation
+fonts-dejavu-core
+fonts-ubuntu
+
+# Icons & Theming
+papirus-icon-theme
+adwaita-icon-theme
+breeze-icon-theme
+hicolor-icon-theme
+
+# System Utilities
+gvfs
+gvfs-backends
+udisks2
+policykit-1
+policykit-1-gnome
+software-properties-gtk
+synaptic
+gdebi
+htop
+neofetch
+
+# Printing & Scanning
+cups
+cups-browsed
+simple-scan
+
+# Archive Support
+unzip
+zip
+p7zip-full
+
+# AI/ML Development Environment - Complete Suite
+# =====================================================
+
+# Python Development Stack
+python3
+python3-dev
+python3-pip
+python3-venv
+python3-setuptools
+python3-wheel
+python3-distutils
+python-is-python3
+
+# AI/ML Python Libraries (System Packages)
+python3-numpy
+python3-scipy
+python3-matplotlib
+python3-pandas
+python3-sklearn
+python3-opencv
+python3-pil
+python3-requests
+python3-urllib3
+python3-bs4
+python3-lxml
+python3-jupyter-core
+python3-notebook
+python3-ipython
+python3-seaborn
+python3-tk
+
+# Development Tools & IDEs
+git
+git-lfs
+vim
+nano
+thonny
+idle3
+tree
+zenity
+
+# Advanced Development Tools
+build-essential
+cmake
+make
+gcc
+g++
+gfortran
+pkg-config
+autoconf
+automake
+libtool
+
+# Database & Data Storage
+sqlite3
+postgresql-client
+default-mysql-client
+redis-tools
+
+# Containerization & Virtualization  
+docker.io
+docker-compose
+podman
+
+# Version Control & Collaboration
+subversion
+
+# System Performance & Monitoring
+nvtop
+iotop
+nmon
+dstat
+sysstat
+lm-sensors
+stress-ng
+
+# GPU Support & CUDA (will be available if NVIDIA drivers installed)
+mesa-utils
+clinfo
+ocl-icd-opencl-dev
+
+# Data Visualization & Graphics
+graphviz
+imagemagick
+inkscape
+gimp
+
+# Network & Web Development
+nodejs
+npm
+httpie
+
+# Mathematical & Scientific Computing
+octave
+maxima
+gnuplot
+texlive-latex-base
+texlive-latex-extra
+texlive-fonts-recommended
+
+# Documentation & Writing
+pandoc
+texstudio
+libreoffice
+
+# Calamares Installer
+calamares
+calamares-settings-debian
+
+# Network Tools
+openssh-client
+rsync
+
+# Power Management
+xfce4-power-manager
+
+# Appearance Manager
+gtk2-engines-murrine
+gtk2-engines-pixbuf
+
+
+

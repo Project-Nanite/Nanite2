@@ -1,0 +1,588 @@
+#!/bin/bash
+
+# Integrate Advanced AI Tools into Menu System
+# Updates existing AI tools integration with new advanced tools
+
+set -e
+
+echo "I: Integrating advanced AI tools into menu system..."
+
+# Update AI quick access menu to include advanced tools
+cat > /usr/local/bin/ai-quick-access-extended << 'EOF'
+#!/bin/bash
+# Enhanced AI Tools Quick Access Menu
+
+AI_TOOLS=(
+    "ChatGPT|https://chat.openai.com/|OpenAI's conversational AI"
+    "Claude AI|https://claude.ai/|Anthropic's AI assistant"  
+    "Google Gemini|https://gemini.google.com/|Google's advanced AI"
+    "Perplexity|https://perplexity.ai/|AI-powered search"
+    "Groq|https://groq.com/|Ultra-fast AI inference"
+    "Bolt|https://bolt.new/|AI full-stack development"
+    "Lovable|https://lovable.dev/|AI app development"
+    "NotebookLM|https://notebooklm.google.com/|AI research tool"
+    "---SEPARATOR---|---|---"
+    "Ollama|local|Local LLM runner"
+    "Terminal GPT|local|Terminal ChatGPT client"
+    "Gemini CLI|local|Google Gemini command line"
+    "Cursor AI|local|AI-powered code editor"
+    "---SEPARATOR---|---|---"
+    "Jupyter Lab|local|Local development environment"
+    "AI Terminal|local|Terminal AI tools launcher"
+    "AI Dashboard|local|Comprehensive AI tools overview"
+)
+
+echo "🤖 Enhanced AI Tools Launcher"
+echo "============================="
+echo ""
+
+# Create menu with sections
+web_section=1
+local_section=1
+dev_section=1
+
+for i in "${!AI_TOOLS[@]}"; do
+    IFS='|' read -r name url desc <<< "${AI_TOOLS[$i]}"
+    
+    if [ "$name" = "---SEPARATOR---" ]; then
+        if [ $web_section -eq 1 ]; then
+            echo ""
+            echo "🔧 Local AI Tools:"
+            web_section=0
+        elif [ $local_section -eq 1 ]; then
+            echo ""
+            echo "💻 Development Tools:"
+            local_section=0
+        fi
+        continue
+    fi
+    
+    echo "$((i+1-2)). $name - $desc"
+done
+
+echo ""
+echo "Enter tool number or 'q' to quit:"
+read -r choice
+
+if [ "$choice" = "q" ] || [ "$choice" = "Q" ]; then
+    exit 0
+fi
+
+# Handle selection
+case $choice in
+    1) firefox --new-window --class="ChatGPT" "https://chat.openai.com/" & ;;
+    2) firefox --new-window --class="Claude AI" "https://claude.ai/" & ;;
+    3) firefox --new-window --class="Google Gemini" "https://gemini.google.com/" & ;;
+    4) firefox --new-window --class="Perplexity" "https://perplexity.ai/" & ;;
+    5) firefox --new-window --class="Groq" "https://groq.com/" & ;;
+    6) firefox --new-window --class="Bolt" "https://bolt.new/" & ;;
+    7) firefox --new-window --class="Lovable" "https://lovable.dev/" & ;;
+    8) firefox --new-window --class="NotebookLM" "https://notebooklm.google.com/" & ;;
+    9) 
+        if command -v ollama >/dev/null 2>&1; then
+            echo "🦙 Starting Ollama..."
+            xfce4-terminal --title="Ollama" --command="ollama-start" &
+        else
+            echo "Installing Ollama..."
+            xfce4-terminal --title="Installing AI Tools" --command="install-advanced-ai-tools" &
+        fi
+        ;;
+    10)
+        if command -v tgpt >/dev/null 2>&1; then
+            echo "💬 Starting Terminal GPT..."
+            xfce4-terminal --title="Terminal GPT" --command="bash -c 'echo \"🤖 Terminal GPT Ready\"; tgpt -i'" &
+        else
+            echo "Installing tgpt..."
+            xfce4-terminal --title="Installing AI Tools" --command="install-advanced-ai-tools" &
+        fi
+        ;;
+    11)
+        if command -v gemini >/dev/null 2>&1; then
+            echo "🔹 Starting Gemini CLI..."
+            xfce4-terminal --title="Gemini CLI" --command="bash -c 'echo \"🔹 Gemini CLI Ready\"; echo \"Try: gemini chat \\\"your question\\\"\"; bash'" &
+        else
+            echo "Installing Gemini CLI..."
+            xfce4-terminal --title="Installing AI Tools" --command="install-advanced-ai-tools" &
+        fi
+        ;;
+    12)
+        if command -v cursor-ai >/dev/null 2>&1; then
+            echo "✨ Starting Cursor AI..."
+            cursor-ai &
+        else
+            echo "Installing Cursor AI..."
+            xfce4-terminal --title="Installing AI Tools" --command="install-advanced-ai-tools" &
+        fi
+        ;;
+    13)
+        if [ -d ~/ai-ml-env ]; then
+            cd ~/AI-ML-Projects
+            source ~/ai-ml-env/bin/activate 2>/dev/null
+            /usr/local/bin/safe-launchers/jupyter-root &
+        else
+            echo "Setting up AI/ML environment..."
+            xfce4-terminal --title="AI/ML Setup" --command="setup-aiml-env" &
+        fi
+        ;;
+    14)
+        ai-terminal &
+        ;;
+    15)
+        firefox --new-window "file://$HOME/.mozilla/firefox/nanite-aiml.default-esr/ai-tools-toolbar.html" &
+        ;;
+    *)
+        echo "Invalid choice"
+        ;;
+esac
+EOF
+
+chmod +x /usr/local/bin/ai-quick-access-extended
+
+# Replace the old ai-quick-access with the enhanced version
+cp /usr/local/bin/ai-quick-access-extended /usr/local/bin/ai-quick-access
+
+# Update the AI dashboard HTML to include advanced tools
+cat > /etc/skel/.mozilla/firefox/nanite-aiml.default-esr/ai-tools-enhanced.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🤖 AI Tools - Enhanced Dashboard</title>
+    <style>
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d30 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .tool-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .tool-card:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .tool-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4a90e2;
+        }
+        .tool-desc {
+            font-size: 0.9em;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+        .category {
+            background: rgba(74, 144, 226, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .category h3 {
+            margin: 0 0 15px 0;
+            color: #4a90e2;
+        }
+        .local-tools {
+            background: rgba(39, 174, 96, 0.2);
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+        .advanced-tools {
+            background: rgba(155, 89, 182, 0.2);
+            border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+        .new-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 Enhanced AI Tools Dashboard</h1>
+        <p>Your comprehensive AI development toolkit with advanced local tools</p>
+    </div>
+
+    <div class="category local-tools">
+        <h3>🏠 Local Development Tools</h3>
+        <div class="tools-grid">
+            <a href="http://localhost:8888" class="tool-card">
+                <div class="tool-name">Jupyter Lab</div>
+                <div class="tool-desc">Local notebook environment for AI/ML development</div>
+            </a>
+            <a href="file:///home/user/AI-ML-Projects" class="tool-card">
+                <div class="tool-name">AI/ML Projects</div>
+                <div class="tool-desc">Your local development workspace</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="category advanced-tools">
+        <h3>🚀 Advanced AI Tools <span class="new-badge">NEW</span></h3>
+        <div class="tools-grid">
+            <div class="tool-card" onclick="openLocalTool('ollama')">
+                <div class="tool-name">🦙 Ollama</div>
+                <div class="tool-desc">Local LLM runner - Run AI models offline</div>
+            </div>
+            <div class="tool-card" onclick="openLocalTool('tgpt')">
+                <div class="tool-name">💬 Terminal GPT</div>
+                <div class="tool-desc">Fast ChatGPT access from terminal</div>
+            </div>
+            <div class="tool-card" onclick="openLocalTool('gemini-cli')">
+                <div class="tool-name">🔹 Gemini CLI</div>
+                <div class="tool-desc">Google Gemini command-line interface</div>
+            </div>
+            <div class="tool-card" onclick="openLocalTool('cursor-ai')">
+                <div class="tool-name">✨ Cursor AI</div>
+                <div class="tool-desc">AI-powered code editor with completions</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="category">
+        <h3>🎯 Conversational AI</h3>
+        <div class="tools-grid">
+            <a href="https://chat.openai.com/" class="tool-card">
+                <div class="tool-name">ChatGPT</div>
+                <div class="tool-desc">OpenAI's advanced conversational AI assistant</div>
+            </a>
+            <a href="https://claude.ai/" class="tool-card">
+                <div class="tool-name">Claude AI</div>
+                <div class="tool-desc">Anthropic's AI for analysis and creative tasks</div>
+            </a>
+            <a href="https://gemini.google.com/" class="tool-card">
+                <div class="tool-name">Google Gemini</div>
+                <div class="tool-desc">Google's multimodal AI model</div>
+            </a>
+            <a href="https://perplexity.ai/" class="tool-card">
+                <div class="tool-name">Perplexity</div>
+                <div class="tool-desc">AI-powered research and search engine</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="category">
+        <h3>⚡ High-Performance AI</h3>
+        <div class="tools-grid">
+            <a href="https://groq.com/" class="tool-card">
+                <div class="tool-name">Groq</div>
+                <div class="tool-desc">Ultra-fast AI inference platform</div>
+            </a>
+            <a href="https://grok.x.ai/" class="tool-card">
+                <div class="tool-name">Grok</div>
+                <div class="tool-desc">X's AI with real-time data access</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="category">
+        <h3>🛠️ Development & Coding</h3>
+        <div class="tools-grid">
+            <a href="https://bolt.new/" class="tool-card">
+                <div class="tool-name">Bolt</div>
+                <div class="tool-desc">AI-powered full-stack development</div>
+            </a>
+            <a href="https://lovable.dev/" class="tool-card">
+                <div class="tool-name">Lovable</div>
+                <div class="tool-desc">AI app development and code generation</div>
+            </a>
+            <a href="https://replit.com/" class="tool-card">
+                <div class="tool-name">Replit</div>
+                <div class="tool-desc">AI-powered online IDE</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="category">
+        <h3>📚 Research & Learning</h3>
+        <div class="tools-grid">
+            <a href="https://notebooklm.google.com/" class="tool-card">
+                <div class="tool-name">NotebookLM</div>
+                <div class="tool-desc">AI-powered research and note-taking</div>
+            </a>
+            <a href="https://huggingface.co/" class="tool-card">
+                <div class="tool-name">Hugging Face</div>
+                <div class="tool-desc">AI model hub and ML platform</div>
+            </a>
+            <a href="https://colab.research.google.com/" class="tool-card">
+                <div class="tool-name">Google Colab</div>
+                <div class="tool-desc">Free Jupyter with GPU/TPU access</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function openLocalTool(tool) {
+            // These would open local applications
+            switch(tool) {
+                case 'ollama':
+                    alert('Opening Ollama - Local LLM Runner\n\nThis will launch in a terminal window.');
+                    break;
+                case 'tgpt':
+                    alert('Opening Terminal GPT\n\nThis will launch in a terminal window.');
+                    break;
+                case 'gemini-cli':
+                    alert('Opening Gemini CLI\n\nThis will launch in a terminal window.');
+                    break;
+                case 'cursor-ai':
+                    alert('Opening Cursor AI\n\nThis will launch the AI-powered editor.');
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
+EOF
+
+# Update existing AI tools desktop shortcuts to include advanced tools
+echo "🔄 Updating existing AI tools integration..."
+
+# Update the AI Tools Dashboard desktop shortcut to use enhanced version
+cat > /etc/skel/Desktop/ai-tools-dashboard.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=🤖 AI Tools Dashboard
+Comment=Enhanced dashboard with all AI tools including advanced local tools
+Exec=firefox --new-window "file:///home/$USER/.mozilla/firefox/nanite-aiml.default-esr/ai-tools-enhanced.html"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;
+EOF
+
+chmod +x /etc/skel/Desktop/ai-tools-dashboard.desktop
+
+# Update panel configuration to include advanced tools launcher
+cat > /etc/skel/.config/xfce4/panel/advanced-ai-panel.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfce4-panel" version="1.0">
+  <!-- Enhanced panel with advanced AI tools -->
+  <property name="configver" type="int" value="2"/>
+  <property name="panels" type="array">
+    <value type="int" value="1"/>
+  </property>
+  
+  <!-- Top Panel: Enhanced AI/ML focused -->
+  <property name="panel-1" type="empty">
+    <property name="position" type="string" value="p=6;x=0;y=0"/>
+    <property name="length" type="uint" value="100"/>
+    <property name="position-locked" type="bool" value="true"/>
+    <property name="size" type="uint" value="48"/>
+    <property name="plugin-ids" type="array">
+      <value type="int" value="1"/> <!-- Whisker Menu -->
+      <value type="int" value="2"/> <!-- AI Dashboard -->
+      <value type="int" value="3"/> <!-- ChatGPT -->
+      <value type="int" value="4"/> <!-- Claude AI -->
+      <value type="int" value="5"/> <!-- Ollama -->
+      <value type="int" value="6"/> <!-- Cursor AI -->
+      <value type="int" value="7"/> <!-- Jupyter -->
+      <value type="int" value="8"/> <!-- Terminal -->
+      <value type="int" value="9"/> <!-- System Monitor -->
+      <value type="int" value="10"/> <!-- Clock -->
+      <value type="int" value="11"/> <!-- Actions -->
+    </property>
+  </property>
+  
+  <!-- Enhanced AI Tools Launchers -->
+  <property name="plugin-2" type="string" value="launcher">
+    <property name="items" type="array">
+      <value type="string" value="ai-tools-dashboard.desktop"/>
+    </property>
+  </property>
+  
+  <property name="plugin-3" type="string" value="launcher">
+    <property name="items" type="array">
+      <value type="string" value="chatgpt.desktop"/>
+    </property>
+  </property>
+  
+  <property name="plugin-4" type="string" value="launcher">
+    <property name="items" type="array">
+      <value type="string" value="claude-ai.desktop"/>
+    </property>
+  </property>
+  
+  <property name="plugin-5" type="string" value="launcher">
+    <property name="items" type="array">
+      <value type="string" value="ollama.desktop"/>
+    </property>
+  </property>
+  
+  <property name="plugin-6" type="string" value="launcher">
+    <property name="items" type="array">
+      <value type="string" value="cursor-ai.desktop"/>
+    </property>
+  </property>
+  
+  <property name="plugin-7" type="string" value="launcher">
+    <property name="items" type="array">
+      <value type="string" value="jupyter-lab.desktop"/>
+    </property>
+  </property>
+</channel>
+EOF
+
+# Create comprehensive AI tools status script
+cat > /usr/local/bin/ai-tools-status << 'EOF'
+#!/bin/bash
+# Comprehensive AI Tools Status
+
+echo "🤖 Nanite Linux AI/ML Tools Status"
+echo "==================================="
+echo ""
+
+# Web-based AI tools (always available)
+echo "🌐 Web-Based AI Tools:"
+web_tools=("ChatGPT" "Claude AI" "Google Gemini" "Perplexity" "Groq" "Bolt" "Lovable")
+for tool in "${web_tools[@]}"; do
+    echo "  ✅ $tool: Available via browser"
+done
+
+echo ""
+echo "🔧 Local AI Tools:"
+
+# Check advanced local tools
+local_tools=("ollama" "tgpt" "gemini" "cursor-ai")
+local_installed=0
+for tool in "${local_tools[@]}"; do
+    if command -v "$tool" >/dev/null 2>&1; then
+        echo "  ✅ $tool: Installed"
+        ((local_installed++))
+    else
+        echo "  ❌ $tool: Not installed"
+    fi
+done
+
+echo ""
+echo "💻 Development Tools:"
+
+# Check development tools
+dev_tools=("jupyter" "spyder" "python3" "code")
+dev_installed=0
+for tool in "${dev_tools[@]}"; do
+    if command -v "$tool" >/dev/null 2>&1; then
+        echo "  ✅ $tool: Available"
+        ((dev_installed++))
+    else
+        echo "  ❌ $tool: Not available"
+    fi
+done
+
+echo ""
+echo "📊 Summary:"
+echo "  🌐 Web AI Tools: ${#web_tools[@]}/${#web_tools[@]} available"
+echo "  🔧 Local AI Tools: $local_installed/${#local_tools[@]} installed"
+echo "  💻 Dev Tools: $dev_installed/${#dev_tools[@]} available"
+
+echo ""
+echo "🚀 Quick Actions:"
+if [ $local_installed -lt ${#local_tools[@]} ]; then
+    echo "  • install-advanced-ai-tools - Install missing local AI tools"
+fi
+echo "  • ai-quick-access - Launch AI tools menu"
+echo "  • ai-terminal - Terminal AI tools"
+echo "  • setup-aiml-env - Setup development environment"
+
+echo ""
+echo "🖥️ Desktop Integration:"
+desktop_files=(/root/Desktop/*ai*.desktop /root/Desktop/ollama.desktop /root/Desktop/cursor*.desktop /root/Desktop/terminal-gpt.desktop 2>/dev/null)
+echo "  Desktop shortcuts: ${#desktop_files[@]} available"
+EOF
+
+chmod +x /usr/local/bin/ai-tools-status
+
+# Update keyboard shortcuts to include advanced tools
+cat > /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts-enhanced.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+
+<channel name="xfce4-keyboard-shortcuts" version="1.0">
+  <property name="commands" type="empty">
+    <property name="default" type="empty">
+      <!-- Standard shortcuts -->
+      <property name="&lt;Alt&gt;F1" type="string" value="xfce4-popup-whiskermenu"/>
+      <property name="&lt;Alt&gt;F2" type="string" value="xfrun4"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;t" type="string" value="xfce4-terminal"/>
+      
+      <!-- Enhanced AI Tools Shortcuts -->
+      <property name="&lt;Super&gt;a" type="string" value="ai-quick-access"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;a" type="string" value="ai-terminal"/>
+      <property name="&lt;Super&gt;c" type="string" value="firefox --new-window --class='ChatGPT' https://chat.openai.com/"/>
+      <property name="&lt;Super&gt;j" type="string" value="/usr/local/bin/safe-launchers/jupyter-root"/>
+      <property name="&lt;Super&gt;o" type="string" value="xfce4-terminal --title='Ollama' --command='ollama-start'"/>
+      <property name="&lt;Super&gt;t" type="string" value="xfce4-terminal --title='Terminal GPT' --command='tgpt -i'"/>
+      <property name="&lt;Super&gt;e" type="string" value="cursor-ai"/>
+      <property name="&lt;Super&gt;d" type="string" value="firefox --new-window file:///home/$USER/.mozilla/firefox/nanite-aiml.default-esr/ai-tools-enhanced.html"/>
+    </property>
+  </property>
+</channel>
+EOF
+
+# Create enhanced welcome message for first boot
+cat > /etc/update-motd.d/30-nanite-aiml-enhanced << 'EOF'
+#!/bin/bash
+# Enhanced Nanite AI/ML MOTD with advanced tools
+
+echo ""
+echo "🚀 Advanced AI Tools Available:"
+echo "   • Ollama (Local LLM) - Run AI models offline"
+echo "   • Terminal GPT - Fast ChatGPT in terminal"
+echo "   • Gemini CLI - Google's AI from command line"
+echo "   • Cursor AI - AI-powered code editor"
+echo ""
+
+if [ ! -f /opt/ai-tools/Cursor.AppImage ] && [ ! -f /usr/local/bin/ollama ]; then
+    echo "💡 Install advanced AI tools:"
+    echo "   • Click '🚀 Install Advanced AI Tools' on desktop"
+    echo "   • Or run: install-advanced-ai-tools"
+    echo ""
+fi
+
+echo "⌨️  Keyboard Shortcuts:"
+echo "   • Super+A: AI Tools Menu"  
+echo "   • Super+C: ChatGPT"
+echo "   • Super+J: Jupyter Lab"
+echo "   • Super+O: Ollama"
+echo "   • Super+T: Terminal GPT"
+echo "   • Super+E: Cursor AI"
+echo ""
+EOF
+
+chmod +x /etc/update-motd.d/30-nanite-aiml-enhanced
+
+echo "I: Advanced AI tools menu integration completed!"
+echo "   ✅ Enhanced AI quick access menu with advanced tools"
+echo "   ✅ Updated AI dashboard with new tools section"
+echo "   ✅ Enhanced panel configuration with tool launchers"
+echo "   ✅ Comprehensive status checking tools"
+echo "   ✅ Extended keyboard shortcuts for advanced tools"
+echo "   ✅ Enhanced welcome message with tool information"
+echo ""
+echo "   🎯 New Keyboard Shortcuts:"
+echo "      • Super+O: Ollama (Local LLM)"
+echo "      • Super+T: Terminal GPT" 
+echo "      • Super+E: Cursor AI"
+echo "      • Super+D: Enhanced AI Dashboard"

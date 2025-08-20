@@ -1,0 +1,477 @@
+#!/bin/bash
+
+# Fix Calamares Branding Issues Hook
+# Fixes Calamares branding configuration errors
+
+set -e
+
+echo "I: Fixing Calamares branding configuration..."
+
+# Ensure Calamares branding directory structure exists
+mkdir -p /usr/share/calamares/branding/nanite/slideshow
+mkdir -p /etc/calamares/branding/nanite
+
+# Create a proper slideshow QML file with AI/ML content
+cat > /usr/share/calamares/branding/nanite/slideshow/slideshow.qml << 'EOF'
+import QtQuick 2.0;
+import calamares.slideshow 1.0;
+
+Rectangle {
+    id: slideshow
+    width: parent.width
+    height: parent.height
+    color: "#1a1a1a"
+    
+    property int currentSlide: 0
+    property int totalSlides: 4
+    
+    Timer {
+        id: slideTimer
+        interval: 8000
+        repeat: true
+        running: true
+        onTriggered: {
+            slideshow.currentSlide = (slideshow.currentSlide + 1) % slideshow.totalSlides
+        }
+    }
+    
+    // Background
+    Rectangle {
+        anchors.fill: parent
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#2d2d30" }
+            GradientStop { position: 1.0; color: "#1a1a1a" }
+        }
+    }
+    
+    // Slide content
+    Item {
+        id: slideContent
+        anchors.fill: parent
+        anchors.margins: 60
+        
+        // Slide 1: Welcome
+        Rectangle {
+            id: slide1
+            anchors.fill: parent
+            color: "transparent"
+            visible: slideshow.currentSlide === 0
+            
+            Column {
+                anchors.centerIn: parent
+                spacing: 40
+                
+                Text {
+                    text: "🤖 Welcome to Nanite Linux"
+                    font.pixelSize: 48
+                    font.bold: true
+                    color: "#ffffff"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                
+                Text {
+                    text: "AI/ML Edition"
+                    font.pixelSize: 32
+                    color: "#4a90e2"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                
+                Text {
+                    text: "Professional AI & Machine Learning Development Distribution"
+                    font.pixelSize: 20
+                    color: "#e0e0e0"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                    width: parent.width * 0.8
+                }
+            }
+        }
+        
+        // Slide 2: AI Tools
+        Rectangle {
+            id: slide2
+            anchors.fill: parent
+            color: "transparent"
+            visible: slideshow.currentSlide === 1
+            
+            Column {
+                anchors.centerIn: parent
+                spacing: 30
+                
+                Text {
+                    text: "🚀 25+ AI Tools Included"
+                    font.pixelSize: 42
+                    font.bold: true
+                    color: "#4a90e2"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                
+                Column {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 15
+                    
+                    Text {
+                        text: "• ChatGPT, Claude AI, Google Gemini"
+                        font.pixelSize: 18
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: "• Ollama (Local LLM), Terminal GPT"
+                        font.pixelSize: 18
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: "• Cursor AI, Jupyter Lab, VS Code"
+                        font.pixelSize: 18
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: "• Complete Python AI/ML Stack"
+                        font.pixelSize: 18
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
+        }
+        
+        // Slide 3: Features
+        Rectangle {
+            id: slide3
+            anchors.fill: parent
+            color: "transparent"
+            visible: slideshow.currentSlide === 2
+            
+            Column {
+                anchors.centerIn: parent
+                spacing: 30
+                
+                Text {
+                    text: "⚡ Ready-to-Use Environment"
+                    font.pixelSize: 42
+                    font.bold: true
+                    color: "#27ae60"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                
+                Column {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 15
+                    
+                    Text {
+                        text: "✅ GPU Support (CUDA/ROCm)"
+                        font.pixelSize: 18
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: "✅ Complete Development Stack"
+                        font.pixelSize: 18
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: "✅ Beautiful Dark Theme"
+                        font.pixelSize: 18
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: "✅ One-Click AI Tool Setup"
+                        font.pixelSize: 18
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
+        }
+        
+        // Slide 4: Get Started
+        Rectangle {
+            id: slide4
+            anchors.fill: parent
+            color: "transparent"
+            visible: slideshow.currentSlide === 3
+            
+            Column {
+                anchors.centerIn: parent
+                spacing: 40
+                
+                Text {
+                    text: "🎯 Get Started"
+                    font.pixelSize: 48
+                    font.bold: true
+                    color: "#f39c12"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                
+                Column {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 20
+                    
+                    Text {
+                        text: "After installation:"
+                        font.pixelSize: 22
+                        font.bold: true
+                        color: "#ffffff"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: "1. Run 'setup-aiml-env' to configure AI/ML"
+                        font.pixelSize: 18
+                        color: "#e0e0e0"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: "2. Click AI tool shortcuts on desktop"
+                        font.pixelSize: 18
+                        color: "#e0e0e0"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: "3. Start coding with AI assistance!"
+                        font.pixelSize: 18
+                        color: "#e0e0e0"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+                
+                Text {
+                    text: "Welcome to the future of AI development! 🚀"
+                    font.pixelSize: 16
+                    color: "#4a90e2"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    topPadding: 20
+                }
+            }
+        }
+    }
+    
+    // Slide indicators
+    Row {
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottomMargin: 30
+        spacing: 15
+        
+        Repeater {
+            model: slideshow.totalSlides
+            Rectangle {
+                width: 12
+                height: 12
+                radius: 6
+                color: index === slideshow.currentSlide ? "#4a90e2" : "#666666"
+                
+                Behavior on color {
+                    ColorAnimation { duration: 300 }
+                }
+            }
+        }
+    }
+}
+EOF
+
+# Fix the branding.desc file to ensure proper YAML syntax
+cat > /etc/calamares/branding/nanite/branding.desc << 'EOF'
+# Calamares branding for Nanite Linux AI/ML Edition
+componentName: nanite
+
+strings:
+    productName: "Nanite Linux AI/ML Edition"
+    shortVersion: "1.0"
+    version: "1.0 AI/ML Edition (Stable)"
+    versionedName: "Nanite Linux 1.0 AI/ML Edition"
+    shortDescription: "Professional AI/ML Development Distribution"
+    website: "https://nanite.software"
+    support: "https://nanite.software/support"
+    bootloaderEntryName: "Nanite AI/ML"
+    windowTitle: "Nanite AI/ML Installer"
+
+images:
+    productLogo: "/usr/share/pixmaps/nanite-logo.png"
+    productIcon: "/usr/share/pixmaps/nanite-logo.png"
+    productWallpaper: "/usr/share/backgrounds/wallpaper.png"
+
+style:
+    sidebarBackground: "#2d2d30"
+    sidebarText: "#ffffff"
+    sidebarTextCurrent: "#4a90e2"
+    sidebarTextHighlight: "#4a90e2"
+
+slideshow:
+    api: 1
+    slideshow: "/usr/share/calamares/branding/nanite/slideshow/slideshow.qml"
+EOF
+
+# Create fallback slideshow if QML fails
+cat > /usr/share/calamares/branding/nanite/slideshow/slideshow-simple.qml << 'EOF'
+import QtQuick 2.0;
+
+Rectangle {
+    width: parent.width
+    height: parent.height
+    color: "#1a1a1a"
+    
+    Column {
+        anchors.centerIn: parent
+        spacing: 30
+        
+        Text {
+            text: "🤖 Nanite Linux AI/ML Edition"
+            font.pixelSize: 36
+            font.bold: true
+            color: "#4a90e2"
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+        
+        Text {
+            text: "Installing your AI development environment..."
+            font.pixelSize: 18
+            color: "#ffffff"
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+        
+        Text {
+            text: "Please wait while we set up your system"
+            font.pixelSize: 16
+            color: "#cccccc"
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+    }
+}
+EOF
+
+# Create a test script for Calamares configuration
+cat > /usr/local/bin/test-calamares-config << 'EOF'
+#!/bin/bash
+# Test Calamares configuration
+
+echo "🔧 Testing Calamares Configuration"
+echo "=================================="
+
+# Test branding file syntax
+echo "📋 Testing branding.desc syntax..."
+if calamares --test-branding /etc/calamares/branding/nanite/branding.desc 2>/dev/null; then
+    echo "✅ Branding configuration: OK"
+else
+    echo "❌ Branding configuration: FAILED"
+    echo "   Checking syntax..."
+    python3 -c "
+import yaml
+try:
+    with open('/etc/calamares/branding/nanite/branding.desc', 'r') as f:
+        yaml.safe_load(f)
+    print('✅ YAML syntax: Valid')
+except Exception as e:
+    print(f'❌ YAML syntax error: {e}')
+"
+fi
+
+# Test slideshow QML
+echo ""
+echo "📋 Testing slideshow QML..."
+qml_file="/usr/share/calamares/branding/nanite/slideshow/slideshow.qml"
+if [ -f "$qml_file" ]; then
+    echo "✅ Slideshow QML file: EXISTS"
+    
+    # Check QML syntax if qmlscene is available
+    if command -v qmlscene >/dev/null 2>&1; then
+        if qmlscene --quit "$qml_file" 2>/dev/null; then
+            echo "✅ QML syntax: Valid"
+        else
+            echo "⚠️  QML syntax: May have issues"
+        fi
+    else
+        echo "ℹ️  QML syntax checker not available"
+    fi
+else
+    echo "❌ Slideshow QML file: MISSING"
+fi
+
+# Test Calamares launch
+echo ""
+echo "📋 Testing Calamares launch..."
+if timeout 5 calamares --test 2>/dev/null; then
+    echo "✅ Calamares: Can launch"
+else
+    echo "❌ Calamares: Launch failed"
+    echo "   Try running: calamares --debug"
+fi
+
+echo ""
+echo "💡 If issues persist:"
+echo "   • Check /var/log/calamares for detailed errors"
+echo "   • Run 'calamares --debug' for verbose output"
+echo "   • Verify all image files exist in /usr/share/pixmaps/"
+EOF
+
+chmod +x /usr/local/bin/test-calamares-config
+
+# Create Calamares desktop shortcut with error handling
+cat > /usr/share/applications/calamares-safe.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Install Nanite (Safe Mode)
+Comment=Install Nanite Linux with error checking
+Exec=bash -c 'if test-calamares-config | grep -q "FAILED\|Launch failed"; then zenity --error --text="Calamares configuration error detected. Please check system logs."; else pkexec calamares; fi'
+Icon=nanite-logo
+Terminal=false
+StartupNotify=true
+Categories=System;Settings;
+Keywords=install;system;setup;calamares;
+EOF
+
+# Copy the fixed branding file to both locations
+cp /etc/calamares/branding/nanite/branding.desc /usr/share/calamares/branding/nanite/branding.desc 2>/dev/null || true
+
+# Ensure all required image files exist
+echo "🖼️ Ensuring required image files exist..."
+
+# Create placeholder logo if missing
+if [ ! -f /usr/share/pixmaps/nanite-logo.png ]; then
+    # Create a simple logo using ImageMagick if available
+    if command -v convert >/dev/null 2>&1; then
+        convert -size 128x128 xc:transparent \
+            -fill "#4a90e2" -draw "circle 64,64 64,32" \
+            -fill "white" -pointsize 40 -gravity center \
+            -annotate +0+0 "N" \
+            /usr/share/pixmaps/nanite-logo.png 2>/dev/null || true
+    fi
+fi
+
+# Create placeholder wallpaper if missing
+if [ ! -f /usr/share/backgrounds/wallpaper.png ]; then
+    # Create a gradient wallpaper
+    if command -v convert >/dev/null 2>&1; then
+        convert -size 1920x1080 gradient:"#2d2d30"-"#1a1a1a" \
+            /usr/share/backgrounds/wallpaper.png 2>/dev/null || true
+    fi
+fi
+
+# Fix permissions
+chmod 644 /etc/calamares/branding/nanite/branding.desc 2>/dev/null || true
+chmod 644 /usr/share/calamares/branding/nanite/slideshow/*.qml 2>/dev/null || true
+
+echo "I: Calamares branding fixes completed!"
+echo "   ✅ Fixed slideshow configuration syntax"
+echo "   ✅ Created comprehensive slideshow with AI/ML content"
+echo "   ✅ Updated branding.desc with proper YAML format"
+echo "   ✅ Created configuration test tools"
+echo "   ✅ Added safe launch option"
+echo ""
+echo "   🧪 Test configuration: test-calamares-config"
+echo "   🚀 Safe launch: Applications → Install Nanite (Safe Mode)"

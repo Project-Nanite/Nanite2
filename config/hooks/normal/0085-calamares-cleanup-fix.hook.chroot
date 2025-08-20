@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Calamares Cleanup Hook - UPDATED
+# This hook is now replaced by shellprocess-final.conf module
+# Keeping this for compatibility but main cleanup is handled by Calamares modules
+
+set -e
+
+echo "I: Preparing Calamares configuration..."
+
+# Ensure Calamares directories exist
+mkdir -p /etc/calamares/scripts
+mkdir -p /etc/calamares/modules
+
+# Cleanup is now handled by Calamares shellprocess-final module
+echo "I: Live package cleanup will be handled by Calamares shellprocess-final module"
+
+# Ensure proper permissions on Calamares configuration
+chmod 644 /etc/calamares/settings.conf 2>/dev/null || true
+chmod 644 /etc/calamares/modules/*.conf 2>/dev/null || true
+
+echo "I: Calamares configuration preparation completed"

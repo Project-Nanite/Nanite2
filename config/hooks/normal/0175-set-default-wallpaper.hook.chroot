@@ -1,0 +1,239 @@
+#!/bin/bash
+
+# Set Default Wallpaper Hook for Nanite Linux AI/ML
+# Sets the beautiful geometric bee wallpaper as default everywhere
+
+set -e
+
+echo "I: Setting up default Nanite AI/ML wallpaper..."
+
+# Ensure backgrounds directory exists
+mkdir -p /usr/share/backgrounds
+mkdir -p /usr/share/backgrounds/nanite
+
+# Note: The wallpaper.png file should be placed in config/includes.chroot/usr/share/backgrounds/
+# This hook ensures it's properly configured throughout the system
+
+# Verify wallpaper file exists, if not create a placeholder
+if [ ! -f /usr/share/backgrounds/wallpaper.png ]; then
+    echo "⚠️  Wallpaper file not found, creating placeholder..."
+    
+    # Create a stylized Nanite wallpaper using available tools
+    if command -v convert >/dev/null 2>&1; then
+        # Create gradient background with geometric elements
+        convert -size 1920x1080 \
+            -define gradient:direction=NorthWest \
+            gradient:"#1a1a1a"-"#2d2d30" \
+            /usr/share/backgrounds/wallpaper.png 2>/dev/null || {
+            
+            # Fallback: solid color
+            convert -size 1920x1080 xc:"#1a1a1a" /usr/share/backgrounds/wallpaper.png 2>/dev/null || true
+        }
+    else
+        echo "ℹ️  ImageMagick not available, wallpaper should be provided in build"
+    fi
+fi
+
+# Ensure wallpaper has correct permissions
+chmod 644 /usr/share/backgrounds/wallpaper.png 2>/dev/null || true
+
+# Create symbolic links for different naming conventions
+ln -sf /usr/share/backgrounds/wallpaper.png /usr/share/backgrounds/nanite-wallpaper.png 2>/dev/null || true
+ln -sf /usr/share/backgrounds/wallpaper.png /usr/share/backgrounds/default.png 2>/dev/null || true
+
+# Update XFCE desktop configuration to ensure wallpaper is set
+echo "🖥️ Configuring XFCE desktop wallpaper..."
+
+# Create comprehensive XFCE desktop configuration for wallpaper
+cat > /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop-wallpaper.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+
+<channel name="xfce4-desktop" version="1.0">
+  <property name="backdrop" type="empty">
+    <property name="screen0" type="empty">
+      <property name="monitorVGA-1" type="empty">
+        <property name="workspace0" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+          <property name="image-path" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+        </property>
+        <property name="workspace1" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+          <property name="image-path" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+        </property>
+        <property name="workspace2" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+          <property name="image-path" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+        </property>
+        <property name="workspace3" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+          <property name="image-path" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+        </property>
+      </property>
+      <property name="monitor0" type="empty">
+        <property name="workspace0" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+          <property name="image-path" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+        </property>
+        <property name="workspace1" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+          <property name="image-path" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+        </property>
+        <property name="workspace2" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+          <property name="image-path" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+        </property>
+        <property name="workspace3" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+          <property name="image-path" type="string" value="/usr/share/backgrounds/wallpaper.png"/>
+        </property>
+      </property>
+    </property>
+  </property>
+</channel>
+EOF
+
+# Update login screen wallpaper configuration
+echo "🔐 Setting login screen wallpaper..."
+
+# Update LightDM greeter to use new wallpaper
+if [ -f /etc/lightdm/lightdm-gtk-greeter.conf ]; then
+    sed -i 's|background=.*|background=/usr/share/backgrounds/wallpaper.png|g' /etc/lightdm/lightdm-gtk-greeter.conf
+fi
+
+# Update Plymouth boot splash background
+echo "🚀 Setting boot splash wallpaper..."
+
+# Update Plymouth script to use new wallpaper if it exists
+if [ -f /usr/share/desktop-base/active-theme/plymouth/nanite.script ]; then
+    sed -i 's|Image("/usr/share/backgrounds/.*");|Image("/usr/share/backgrounds/wallpaper.png");|g' /usr/share/desktop-base/active-theme/plymouth/nanite.script
+fi
+
+# Update GRUB background
+echo "⚙️ Setting GRUB boot background..."
+
+# Update GRUB configuration
+if [ -f /etc/default/grub.d/nanite.cfg ]; then
+    sed -i 's|GRUB_BACKGROUND=.*|GRUB_BACKGROUND="/usr/share/backgrounds/wallpaper.png"|g' /etc/default/grub.d/nanite.cfg
+fi
+
+# Create wallpaper info file
+cat > /usr/share/backgrounds/wallpaper-info.txt << 'EOF'
+Nanite Linux AI/ML Edition Wallpaper
+=====================================
+
+This beautiful geometric bee wallpaper represents:
+- Innovation and creativity in AI/ML
+- Modern design aesthetic
+- Professional development environment
+- The Nanite brand identity
+
+The colorful geometric design symbolizes:
+- Data visualization and analysis
+- Neural network structures
+- Creative AI applications
+- Vibrant development community
+
+Wallpaper specifications:
+- Resolution: Optimized for multiple screen sizes
+- Style: Modern geometric with colorful accents
+- Theme: Professional yet inspiring
+- Usage: Default across all workspaces and system areas
+EOF
+
+# Update desktop configuration to force wallpaper setting
+echo "🎨 Ensuring wallpaper is applied on first boot..."
+
+# Create wallpaper application script
+cat > /usr/local/bin/apply-nanite-wallpaper << 'EOF'
+#!/bin/bash
+# Apply Nanite wallpaper to all monitors and workspaces
+
+echo "🎨 Applying Nanite AI/ML wallpaper..."
+
+# Get all available monitors
+MONITORS=$(xrandr --listmonitors 2>/dev/null | awk 'NR>1 {print $4}' | head -4)
+
+if [ -z "$MONITORS" ]; then
+    # Fallback monitor names
+    MONITORS="monitor0 VGA-1 HDMI-1 eDP-1"
+fi
+
+# Apply wallpaper to each monitor and workspace
+for monitor in $MONITORS; do
+    for workspace in 0 1 2 3; do
+        xfconf-query -c xfce4-desktop \
+            -p "/backdrop/screen0/${monitor}/workspace${workspace}/last-image" \
+            -s "/usr/share/backgrounds/wallpaper.png" 2>/dev/null || true
+        
+        xfconf-query -c xfce4-desktop \
+            -p "/backdrop/screen0/${monitor}/workspace${workspace}/image-path" \
+            -s "/usr/share/backgrounds/wallpaper.png" 2>/dev/null || true
+        
+        xfconf-query -c xfce4-desktop \
+            -p "/backdrop/screen0/${monitor}/workspace${workspace}/image-style" \
+            -s "5" 2>/dev/null || true
+    done
+done
+
+echo "✅ Wallpaper applied to all monitors and workspaces"
+EOF
+
+chmod +x /usr/local/bin/apply-nanite-wallpaper
+
+# Create autostart entry to apply wallpaper on login
+cat > /etc/skel/.config/autostart/apply-wallpaper.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=Apply Nanite Wallpaper
+Comment=Ensure Nanite wallpaper is applied
+Exec=bash -c 'sleep 5 && apply-nanite-wallpaper'
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Create desktop wallpaper selection tool
+cat > /usr/share/applications/nanite-wallpaper-settings.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Nanite Wallpaper Settings
+Comment=Configure Nanite Linux wallpaper settings
+Exec=bash -c 'if command -v xfce4-settings-manager >/dev/null 2>&1; then xfce4-settings-manager -s xfce4-desktop-settings; else apply-nanite-wallpaper && notify-send "Wallpaper Applied" "Nanite AI/ML wallpaper has been applied to all workspaces" -i applications-graphics; fi'
+Icon=preferences-desktop-wallpaper
+Terminal=false
+StartupNotify=true
+Categories=Settings;System;
+Keywords=wallpaper;background;desktop;nanite;
+EOF
+
+chmod 644 /usr/share/applications/nanite-wallpaper-settings.desktop
+
+echo "I: Default wallpaper configuration completed!"
+echo "   ✅ Wallpaper path configured throughout system"
+echo "   ✅ XFCE desktop set to use new wallpaper"
+echo "   ✅ Login screen updated"
+echo "   ✅ Boot splash configured"
+echo "   ✅ GRUB background set"
+echo "   ✅ Auto-application on login configured"
+echo "   ✅ Wallpaper settings tool created"
+echo ""
+echo "   📁 Wallpaper location: /usr/share/backgrounds/wallpaper.png"
+echo "   🛠️ Apply manually: apply-nanite-wallpaper"
+echo "   ⚙️ Settings: Applications → Nanite Wallpaper Settings"

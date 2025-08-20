@@ -1,0 +1,340 @@
+#!/bin/bash
+
+# Additional Software Setup Hook for Nanite Linux AI/ML
+# Installs software not available in Debian repositories
+
+set -e
+
+echo "I: Setting up additional AI/ML software..."
+
+# Create script to install additional software post-installation
+cat > /usr/local/bin/install-additional-aiml-tools << 'EOF'
+#!/bin/bash
+# Install Additional AI/ML Tools - Post Installation
+
+echo "🚀 Installing Additional AI/ML Tools"
+echo "===================================="
+
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to check internet connectivity
+check_internet() {
+    echo "🌐 Checking internet connection..."
+    if wget -q --spider https://google.com; then
+        echo "✅ Internet connection available"
+        return 0
+    else
+        echo "❌ No internet connection. Some packages will be skipped."
+        return 1
+    fi
+}
+
+# Install Visual Studio Code
+install_vscode() {
+    if ! command_exists code; then
+        echo "📝 Installing Visual Studio Code..."
+        
+        # Add Microsoft GPG key and repository
+        wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+        sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
+        sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
+        
+        sudo apt update
+        sudo apt install -y code
+        
+        # Install useful VS Code extensions for AI/ML
+        code --install-extension ms-python.python
+        code --install-extension ms-python.jupyter
+        code --install-extension ms-toolsai.jupyter
+        code --install-extension ms-python.pylint
+        code --install-extension ms-python.autopep8
+        
+        echo "✅ VS Code installed with AI/ML extensions"
+    else
+        echo "✅ VS Code already installed"
+    fi
+}
+
+# Install Anaconda/Miniconda
+install_conda() {
+    if ! command_exists conda; then
+        echo "🐍 Installing Miniconda..."
+        
+        cd /tmp
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        chmod +x Miniconda3-latest-Linux-x86_64.sh
+        
+        # Install for all users
+        sudo bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/miniconda3
+        
+        # Create conda activation script
+        cat > /etc/profile.d/conda.sh << 'CONDA_EOF'
+export PATH="/opt/miniconda3/bin:$PATH"
+CONDA_EOF
+        
+        # Initialize conda for current session
+        source /etc/profile.d/conda.sh
+        conda init --all
+        
+        # Create AI/ML conda environment
+        conda create -n aiml python=3.9 -y
+        conda activate aiml
+        
+        # Install AI/ML packages via conda
+        conda install -y numpy pandas matplotlib seaborn scikit-learn jupyter
+        conda install -y pytorch torchvision torchaudio cpuonly -c pytorch
+        conda install -y tensorflow
+        
+        echo "✅ Miniconda installed with AI/ML environment"
+        rm -f /tmp/Miniconda3-latest-Linux-x86_64.sh
+    else
+        echo "✅ Conda already installed"
+    fi
+}
+
+# Install Postman
+install_postman() {
+    if ! command_exists postman; then
+        echo "📮 Installing Postman..."
+        
+        cd /tmp
+        wget https://dl.pstmn.io/download/latest/linux64 -O postman-linux-x64.tar.gz
+        sudo tar -xzf postman-linux-x64.tar.gz -C /opt/
+        sudo rm -f postman-linux-x64.tar.gz
+        
+        # Create desktop file
+        cat > /usr/share/applications/postman.desktop << 'POSTMAN_EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Postman
+Comment=API Development Environment
+Exec=/opt/Postman/Postman
+Icon=/opt/Postman/app/resources/app/assets/icon.png
+Terminal=false
+StartupNotify=true
+Categories=Development;WebDevelopment;
+Keywords=api;rest;http;development;
+POSTMAN_EOF
+        
+        # Create symlink
+        sudo ln -sf /opt/Postman/Postman /usr/local/bin/postman
+        
+        echo "✅ Postman installed"
+    else
+        echo "✅ Postman already installed"
+    fi
+}
+
+# Install Zotero
+install_zotero() {
+    if ! command_exists zotero; then
+        echo "📚 Installing Zotero..."
+        
+        cd /tmp
+        wget -qO zotero.tar.bz2 "https://www.zotero.org/download/client/dl?channel=release&platform=linux-x86_64&version=latest"
+        sudo tar -xjf zotero.tar.bz2 -C /opt/
+        sudo mv /opt/Zotero_linux-x86_64 /opt/zotero
+        
+        # Create desktop file
+        cat > /usr/share/applications/zotero.desktop << 'ZOTERO_EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Zotero
+Comment=Reference Manager for Research
+Exec=/opt/zotero/zotero
+Icon=/opt/zotero/chrome/icons/default/default48.png
+Terminal=false
+StartupNotify=true
+Categories=Office;Education;Science;
+Keywords=reference;bibliography;research;papers;
+ZOTERO_EOF
+        
+        # Create symlink
+        sudo ln -sf /opt/zotero/zotero /usr/local/bin/zotero
+        
+        echo "✅ Zotero installed"
+        rm -f /tmp/zotero.tar.bz2
+    else
+        echo "✅ Zotero already installed"
+    fi
+}
+
+# Install CUDA (if NVIDIA GPU detected)
+install_cuda() {
+    if lspci | grep -i nvidia > /dev/null; then
+        if ! command_exists nvcc; then
+            echo "🟢 Installing NVIDIA CUDA Toolkit..."
+            
+            # Add NVIDIA CUDA repository
+            wget https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64/cuda-keyring_1.0-1_all.deb
+            sudo dpkg -i cuda-keyring_1.0-1_all.deb
+            sudo apt-get update
+            sudo apt-get -y install cuda-toolkit
+            
+            # Add CUDA to PATH
+            echo 'export PATH=/usr/local/cuda/bin:$PATH' | sudo tee -a /etc/environment
+            echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' | sudo tee -a /etc/environment
+            
+            echo "✅ CUDA Toolkit installed"
+            rm -f cuda-keyring_1.0-1_all.deb
+        else
+            echo "✅ CUDA already installed"
+        fi
+    else
+        echo "ℹ️  No NVIDIA GPU detected, skipping CUDA installation"
+    fi
+}
+
+# Main installation process
+echo "This will install additional AI/ML tools not available in Debian repositories."
+echo "This requires internet connection and may take several minutes."
+echo ""
+
+if ! check_internet; then
+    echo "⚠️  Cannot proceed without internet connection"
+    exit 1
+fi
+
+if [ "$EUID" -ne 0 ]; then
+    echo "⚠️  This script requires root privileges"
+    echo "   Running with sudo..."
+    exec sudo "$0" "$@"
+fi
+
+echo "🎯 Installing additional tools..."
+echo ""
+
+# Install each component
+install_vscode
+echo ""
+
+install_postman 
+echo ""
+
+install_zotero
+echo ""
+
+# Ask about Conda installation (large download)
+echo "❓ Install Miniconda with AI/ML environment? (will download ~500MB) (y/N)"
+read -r install_conda_response
+if [[ $install_conda_response =~ ^[Yy]$ ]]; then
+    install_conda
+    echo ""
+fi
+
+# Ask about CUDA installation (if NVIDIA GPU present)
+if lspci | grep -i nvidia > /dev/null; then
+    echo "❓ Install NVIDIA CUDA Toolkit? (y/N)"
+    read -r install_cuda_response
+    if [[ $install_cuda_response =~ ^[Yy]$ ]]; then
+        install_cuda
+        echo ""
+    fi
+fi
+
+echo "🎉 Additional AI/ML tools installation completed!"
+echo ""
+echo "📋 Summary of installed tools:"
+echo "   • Visual Studio Code with AI/ML extensions"
+echo "   • Postman for API development"
+echo "   • Zotero for reference management"
+if [[ $install_conda_response =~ ^[Yy]$ ]]; then
+    echo "   • Miniconda with AI/ML environment"
+fi
+if [[ $install_cuda_response =~ ^[Yy]$ ]]; then
+    echo "   • NVIDIA CUDA Toolkit"
+fi
+echo ""
+echo "🔄 Please log out and back in (or reboot) to ensure all tools work properly"
+EOF
+
+chmod +x /usr/local/bin/install-additional-aiml-tools
+
+# Create desktop application for additional software installer
+cat > /usr/share/applications/nanite-additional-software.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Install Additional AI/ML Tools
+Comment=Install VS Code, Postman, Zotero, and other tools not in Debian repos
+Exec=xfce4-terminal --title="Additional AI/ML Tools Installer" --command="install-additional-aiml-tools"
+Icon=system-software-install
+Terminal=true
+StartupNotify=true
+Categories=System;Development;Settings;
+Keywords=install;software;ai;ml;tools;vscode;postman;zotero;
+EOF
+
+# Create information file about additional software
+cat > /etc/skel/AI-ML-Projects/ADDITIONAL-SOFTWARE.md << 'EOF'
+# 🛠️ Additional AI/ML Software
+
+Some AI/ML tools are not available in Debian repositories but can be installed separately:
+
+## 📦 Available Additional Tools
+
+### 📝 **Visual Studio Code**
+- Microsoft's popular IDE with AI/ML extensions
+- Includes Python, Jupyter, and AI/ML specific extensions
+- **Install**: Run `install-additional-aiml-tools` or use desktop app
+
+### 📮 **Postman** 
+- API development and testing platform
+- Essential for ML model deployment and web services
+- **Install**: Included in additional tools installer
+
+### 📚 **Zotero**
+- Reference manager for research papers
+- Perfect for AI/ML research and bibliography management
+- **Install**: Included in additional tools installer
+
+### 🐍 **Miniconda**
+- Lightweight conda package manager
+- Alternative Python environment with AI/ML packages
+- **Install**: Optional in additional tools installer
+
+### 🟢 **NVIDIA CUDA Toolkit**
+- GPU acceleration for deep learning
+- Auto-detected if NVIDIA GPU is present
+- **Install**: Optional in additional tools installer
+
+## 🚀 How to Install
+
+### Method 1: Desktop Application
+1. Go to **Applications → System → Install Additional AI/ML Tools**
+2. Follow the installation wizard
+3. Select which tools you want to install
+
+### Method 2: Terminal Command
+```bash
+install-additional-aiml-tools
+```
+
+### Method 3: Individual Installation
+Run the installer and select only the tools you need.
+
+## 💡 Recommendations
+
+- **Essential**: VS Code, Postman, Zotero
+- **For GPU users**: CUDA Toolkit
+- **Advanced users**: Miniconda (if you prefer conda over pip)
+
+## 🔄 After Installation
+
+- Log out and back in to ensure PATH updates
+- VS Code will be available in Applications → Development
+- Postman will be in Applications → Development  
+- Zotero will be in Applications → Office
+
+---
+*Part of Nanite Linux AI/ML Edition*
+EOF
+
+echo "I: Additional software setup hook completed!"
+echo "   Users can run 'install-additional-aiml-tools' to install extra software"
+echo "   Desktop application created for easy access"

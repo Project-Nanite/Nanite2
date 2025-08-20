@@ -1,0 +1,517 @@
+#!/bin/bash
+
+# AI/ML Documentation and Learning Resources Hook
+# Adds comprehensive offline and online resources for AI/ML learning
+
+set -e
+
+echo "I: Setting up AI/ML documentation and learning resources..."
+
+# Create comprehensive AI/ML learning directory structure
+mkdir -p /etc/skel/{AI-ML-Learning,AI-ML-Learning/Cheatsheets,AI-ML-Learning/Tutorials,AI-ML-Learning/Papers}
+mkdir -p /usr/share/nanite-aiml/{docs,examples,cheatsheets}
+
+# Create AI/ML Quick Reference Cheatsheet
+cat > /usr/share/nanite-aiml/cheatsheets/ai-ml-quickref.md << 'EOF'
+# 🤖 AI/ML Quick Reference - Nanite Linux
+
+## 🐍 Essential Python Libraries
+
+### Data Manipulation
+```python
+import pandas as pd
+import numpy as np
+
+# Load data
+df = pd.read_csv('data.csv')
+df.head()  # First 5 rows
+df.info()  # Data types and info
+df.describe()  # Statistical summary
+
+# NumPy arrays
+arr = np.array([1, 2, 3, 4, 5])
+arr.shape, arr.dtype
+```
+
+### Machine Learning (Scikit-learn)
+```python
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Predict and evaluate
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.2%}")
+```
+
+### Deep Learning (TensorFlow/Keras)
+```python
+import tensorflow as tf
+from tensorflow import keras
+
+# Simple neural network
+model = keras.Sequential([
+    keras.layers.Dense(128, activation='relu', input_shape=(784,)),
+    keras.layers.Dropout(0.2),
+    keras.layers.Dense(10, activation='softmax')
+])
+
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Train model
+model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2)
+```
+
+### Deep Learning (PyTorch)
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# Simple neural network
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.fc1 = nn.Linear(784, 128)
+        self.fc2 = nn.Linear(128, 10)
+        self.dropout = nn.Dropout(0.2)
+    
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = self.dropout(x)
+        x = self.fc2(x)
+        return x
+
+model = Net()
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+```
+
+### Data Visualization
+```python
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Matplotlib
+plt.figure(figsize=(10, 6))
+plt.plot(x, y)
+plt.title('My Plot')
+plt.xlabel('X Label')
+plt.ylabel('Y Label')
+plt.show()
+
+# Seaborn
+sns.scatterplot(data=df, x='feature1', y='feature2', hue='target')
+plt.show()
+```
+
+## 🛠️ Common Workflows
+
+### 1. Data Preprocessing
+```python
+# Handle missing values
+df.fillna(0)  # Fill with 0
+df.dropna()   # Remove missing
+
+# Encode categorical variables
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+df['category_encoded'] = le.fit_transform(df['category'])
+
+# Scale features
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+```
+
+### 2. Model Evaluation
+```python
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.model_selection import cross_val_score
+
+# Cross validation
+scores = cross_val_score(model, X, y, cv=5)
+print(f"CV Accuracy: {scores.mean():.3f} (+/- {scores.std() * 2:.3f})")
+
+# Confusion matrix
+cm = confusion_matrix(y_true, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+```
+
+### 3. Hyperparameter Tuning
+```python
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {
+    'n_estimators': [100, 200, 300],
+    'max_depth': [10, 20, None],
+    'min_samples_split': [2, 5, 10]
+}
+
+grid_search = GridSearchCV(RandomForestClassifier(), param_grid, cv=5)
+grid_search.fit(X_train, y_train)
+print(f"Best parameters: {grid_search.best_params_}")
+```
+
+## 🚀 Nanite Linux Commands
+
+### Environment Setup
+```bash
+setup-aiml-env          # Setup AI/ML Python environment
+source ~/ai-ml-env/bin/activate  # Activate environment
+jupyter lab             # Launch Jupyter Lab
+spyder                  # Launch Spyder IDE
+```
+
+### GPU Support
+```bash
+setup-gpu-aiml          # Setup GPU drivers (CUDA/ROCm)
+nvidia-smi             # NVIDIA GPU monitoring
+rocm-smi               # AMD GPU monitoring  
+gpu-info               # Display GPU information
+```
+
+### System Monitoring
+```bash
+htop                   # CPU/Memory monitoring
+nvtop                  # GPU process monitoring
+```
+
+## 📚 Learning Resources
+
+### Online Courses
+- **Coursera**: Machine Learning Specialization (Andrew Ng)
+- **Fast.ai**: Practical Deep Learning for Coders
+- **edX**: MIT Introduction to Machine Learning
+
+### Documentation
+- **TensorFlow**: https://tensorflow.org/tutorials
+- **PyTorch**: https://pytorch.org/tutorials  
+- **Scikit-learn**: https://scikit-learn.org/stable/user_guide.html
+
+### Practice Platforms
+- **Kaggle**: Competitions and datasets
+- **Google Colab**: Free GPU/TPU notebooks
+- **Papers With Code**: Latest research with implementations
+
+---
+*This cheatsheet is pre-installed in Nanite Linux AI/ML Distribution*
+EOF
+
+# Create comprehensive example projects
+cat > /usr/share/nanite-aiml/examples/image_classification_example.py << 'EOF'
+#!/usr/bin/env python3
+"""
+Image Classification Example - Nanite Linux AI/ML
+A complete example of image classification using TensorFlow/Keras
+"""
+
+import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+import matplotlib.pyplot as plt
+
+def main():
+    print("🖼️  Image Classification Example")
+    print("===============================")
+    
+    # Load CIFAR-10 dataset
+    print("📊 Loading CIFAR-10 dataset...")
+    (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
+    
+    # Normalize pixel values
+    x_train = x_train.astype('float32') / 255.0
+    x_test = x_test.astype('float32') / 255.0
+    
+    # Class names
+    class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+                   'dog', 'frog', 'horse', 'ship', 'truck']
+    
+    print(f"Training samples: {x_train.shape[0]}")
+    print(f"Test samples: {x_test.shape[0]}")
+    print(f"Image shape: {x_train.shape[1:]}")
+    
+    # Build CNN model
+    print("🏗️  Building CNN model...")
+    model = keras.Sequential([
+        keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        keras.layers.Flatten(),
+        keras.layers.Dense(64, activation='relu'),
+        keras.layers.Dropout(0.5),
+        keras.layers.Dense(10, activation='softmax')
+    ])
+    
+    # Compile model
+    model.compile(optimizer='adam',
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+    
+    print("📋 Model Summary:")
+    model.summary()
+    
+    # Train model (reduced epochs for demo)
+    print("🚀 Training model...")
+    history = model.fit(x_train, y_train,
+                        batch_size=32,
+                        epochs=5,
+                        validation_split=0.2,
+                        verbose=1)
+    
+    # Evaluate model
+    print("📊 Evaluating model...")
+    test_loss, test_accuracy = model.evaluate(x_test, y_test, verbose=0)
+    print(f"Test Accuracy: {test_accuracy:.3f}")
+    
+    # Make predictions
+    predictions = model.predict(x_test[:10])
+    
+    # Display results
+    print("\n🎯 Sample Predictions:")
+    for i in range(5):
+        predicted_class = np.argmax(predictions[i])
+        actual_class = y_test[i][0]
+        confidence = np.max(predictions[i])
+        
+        print(f"Image {i+1}: Predicted={class_names[predicted_class]} "
+              f"(confidence: {confidence:.3f}), Actual={class_names[actual_class]}")
+    
+    # Plot training history
+    plt.figure(figsize=(12, 4))
+    
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['accuracy'], label='Training Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title('Model Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title('Model Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    
+    plt.tight_layout()
+    plt.savefig('training_history.png')
+    print("📈 Training history saved as 'training_history.png'")
+    
+    print("\n✅ Image classification example completed!")
+    print("💡 Try modifying the model architecture or hyperparameters!")
+
+if __name__ == "__main__":
+    main()
+EOF
+
+chmod +x /usr/share/nanite-aiml/examples/image_classification_example.py
+
+# Create data science example
+cat > /usr/share/nanite-aiml/examples/data_science_workflow.py << 'EOF'
+#!/usr/bin/env python3
+"""
+Data Science Workflow Example - Nanite Linux AI/ML
+Complete data science workflow: EDA, preprocessing, modeling, evaluation
+"""
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler
+
+def main():
+    print("📊 Data Science Workflow Example")
+    print("================================")
+    
+    # Load dataset
+    print("📈 Loading Boston Housing dataset...")
+    boston = load_boston()
+    df = pd.DataFrame(boston.data, columns=boston.feature_names)
+    df['target'] = boston.target
+    
+    print(f"Dataset shape: {df.shape}")
+    print(f"Features: {list(boston.feature_names)}")
+    
+    # Exploratory Data Analysis
+    print("\n🔍 Exploratory Data Analysis:")
+    print(df.describe())
+    print(f"\nMissing values:\n{df.isnull().sum()}")
+    
+    # Visualizations
+    plt.figure(figsize=(15, 10))
+    
+    # Distribution of target variable
+    plt.subplot(2, 3, 1)
+    plt.hist(df['target'], bins=30, edgecolor='black')
+    plt.title('Distribution of House Prices')
+    plt.xlabel('Price')
+    plt.ylabel('Frequency')
+    
+    # Correlation heatmap
+    plt.subplot(2, 3, 2)
+    correlation_matrix = df.corr()
+    sns.heatmap(correlation_matrix, annot=False, cmap='coolwarm', center=0)
+    plt.title('Feature Correlation Matrix')
+    
+    # Feature vs target scatter plots
+    important_features = ['LSTAT', 'RM', 'PTRATIO']
+    for i, feature in enumerate(important_features, 3):
+        plt.subplot(2, 3, i)
+        plt.scatter(df[feature], df['target'], alpha=0.6)
+        plt.xlabel(feature)
+        plt.ylabel('Price')
+        plt.title(f'{feature} vs Price')
+    
+    plt.tight_layout()
+    plt.savefig('eda_analysis.png', dpi=150, bbox_inches='tight')
+    print("📊 EDA plots saved as 'eda_analysis.png'")
+    
+    # Prepare data
+    print("\n🛠️  Data Preprocessing:")
+    X = df.drop('target', axis=1)
+    y = df['target']
+    
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+    
+    # Scale features
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    print(f"Training set: {X_train.shape}")
+    print(f"Test set: {X_test.shape}")
+    
+    # Train multiple models
+    print("\n🚀 Training Models:")
+    
+    models = {
+        'Random Forest': RandomForestRegressor(n_estimators=100, random_state=42),
+    }
+    
+    results = {}
+    
+    for name, model in models.items():
+        print(f"\nTraining {name}...")
+        
+        # Train model
+        if 'Random Forest' in name:
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+        else:
+            model.fit(X_train_scaled, y_train)
+            y_pred = model.predict(X_test_scaled)
+        
+        # Evaluate model
+        mse = mean_squared_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+        rmse = np.sqrt(mse)
+        
+        results[name] = {'MSE': mse, 'RMSE': rmse, 'R²': r2, 'predictions': y_pred}
+        
+        print(f"  MSE: {mse:.3f}")
+        print(f"  RMSE: {rmse:.3f}")
+        print(f"  R² Score: {r2:.3f}")
+    
+    # Visualize results
+    print("\n📈 Visualizing Results:")
+    
+    plt.figure(figsize=(15, 5))
+    
+    # Model comparison
+    plt.subplot(1, 3, 1)
+    model_names = list(results.keys())
+    r2_scores = [results[name]['R²'] for name in model_names]
+    
+    plt.bar(model_names, r2_scores, color=['skyblue', 'lightgreen', 'orange'])
+    plt.title('Model Comparison (R² Score)')
+    plt.ylabel('R² Score')
+    plt.ylim(0, 1)
+    
+    # Best model predictions vs actual
+    best_model = max(results.items(), key=lambda x: x[1]['R²'])
+    best_name, best_results = best_model
+    
+    plt.subplot(1, 3, 2)
+    plt.scatter(y_test, best_results['predictions'], alpha=0.6)
+    plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+    plt.xlabel('Actual Prices')
+    plt.ylabel('Predicted Prices')
+    plt.title(f'{best_name}: Predictions vs Actual')
+    
+    # Residuals plot
+    plt.subplot(1, 3, 3)
+    residuals = y_test - best_results['predictions']
+    plt.scatter(best_results['predictions'], residuals, alpha=0.6)
+    plt.axhline(y=0, color='r', linestyle='--')
+    plt.xlabel('Predicted Prices')
+    plt.ylabel('Residuals')
+    plt.title('Residuals Plot')
+    
+    plt.tight_layout()
+    plt.savefig('model_results.png', dpi=150, bbox_inches='tight')
+    print("📊 Model results saved as 'model_results.png'")
+    
+    # Feature importance (for Random Forest)
+    if 'Random Forest' in best_name:
+        feature_importance = pd.DataFrame({
+            'feature': X.columns,
+            'importance': models['Random Forest'].feature_importances_
+        }).sort_values('importance', ascending=False)
+        
+        print(f"\n🎯 Top 5 Most Important Features ({best_name}):")
+        for i, (_, row) in enumerate(feature_importance.head().iterrows()):
+            print(f"  {i+1}. {row['feature']}: {row['importance']:.3f}")
+    
+    print(f"\n✅ Data Science workflow completed!")
+    print(f"🏆 Best model: {best_name} (R² = {best_results['R²']:.3f})")
+    print("💡 Try experimenting with different models and hyperparameters!")
+
+if __name__ == "__main__":
+    main()
+EOF
+
+chmod +x /usr/share/nanite-aiml/examples/data_science_workflow.py
+
+# Create learning resources launcher
+cat > /usr/share/applications/nanite-aiml-learning.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AI/ML Learning Resources
+Comment=Access comprehensive AI/ML learning materials and examples
+Exec=bash -c 'cd ~/AI-ML-Learning && if [ ! -f README.md ]; then cp -r /usr/share/nanite-aiml/* .; fi; xdg-open .'
+Icon=applications-education
+Terminal=false
+StartupNotify=true
+Categories=Education;Science;Development;
+Keywords=ai;ml;learning;tutorial;documentation;examples;
+EOF
+
+# Copy resources to skeleton
+cp -r /usr/share/nanite-aiml/* /etc/skel/AI-ML-Learning/
+
+echo "I: AI/ML documentation and learning resources setup completed!"
+echo "   Comprehensive learning materials, examples, and cheatsheets added"

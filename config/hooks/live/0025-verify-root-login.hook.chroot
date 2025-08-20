@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Root Login Verification Hook
+# Verify that root auto-login is properly configured
+
+set -e
+
+echo "I: Verifying root login configuration..."
+
+# Check if root password is set
+if ! passwd -S root | grep -q "P"; then
+    echo "W: Root password may not be set properly"
+else
+    echo "I: Root password is configured"
+fi
+
+# Check LightDM autologin configuration
+if [ -f /etc/lightdm/lightdm.conf.d/50-nanite.conf ]; then
+    if grep -q "autologin-user=root" /etc/lightdm/lightdm.conf.d/50-nanite.conf; then
+        echo "I: LightDM autologin configured for root"
+    else
+        echo "W: LightDM autologin not configured for root"
+    fi
+fi
+
+# Check PAM configuration
+if [ -f /etc/pam.d/lightdm-autologin ]; then
+    if grep -q "pam_succeed_if.so.*user.*!=.*root" /etc/pam.d/lightdm-autologin; then
+        echo "W: PAM still has root login restrictions"
+    else
+        echo "I: PAM allows root login"
+    fi
+fi
+
+# Ensure root home directory exists and has proper permissions
+if [ -d /root ]; then
+    chown root:root /root
+    chmod 755 /root
+    echo "I: Root home directory permissions verified"
+fi
+
+# Create Desktop directory if it doesn't exist
+mkdir -p /root/Desktop
+chown root:root /root/Desktop
+chmod 755 /root/Desktop
+
+# Create a desktop shortcut for easy password verification
+cat > /root/Desktop/root-info.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Root Login Info
+Comment=Information about root login configuration
+Exec=bash -c 'zenity --info --title="Root Login Info" --text="Username: root\nPassword: root\n\nYou are logged in as root user with full system access." --width=400'
+Icon=dialog-information
+Terminal=false
+Categories=System;
+EOF
+
+chmod +x /root/Desktop/root-info.desktop
+
+echo "I: Root login verification completed"
+echo "   Username: root"
+echo "   Password: root"
+echo "   Auto-login: Enabled"
