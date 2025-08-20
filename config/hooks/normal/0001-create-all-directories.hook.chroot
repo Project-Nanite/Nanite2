@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Create All Required Directories Hook - FIRST HOOK
+# This runs FIRST to create ALL directories that other hooks might need
+# Prevents ALL directory creation errors
+
+set -e
+
+echo "I: Creating ALL required directories for safe hook execution..."
+
+# ==========================================
+# CRITICAL: CREATE ALL DIRECTORIES FIRST
+# ==========================================
+
+# Root user directories (for live environment)
+mkdir -p /root/{Desktop,Documents,Downloads,Pictures,Videos,Music}
+mkdir -p /root/.config/{xfce4,autostart,gtk-3.0}
+mkdir -p /root/.config/xfce4/{panel,xfconf/xfce-perchannel-xml}
+mkdir -p /root/.local/share/applications
+mkdir -p /root/.mozilla/firefox
+mkdir -p /root/{AI-ML-Projects,AI-ML-Learning}
+
+# Skeleton directories (for new users)
+mkdir -p /etc/skel/{Desktop,Documents,Downloads,Pictures,Videos,Music}
+mkdir -p /etc/skel/.config/{xfce4,autostart,gtk-3.0,conky}
+mkdir -p /etc/skel/.config/xfce4/{panel,xfconf/xfce-perchannel-xml}
+mkdir -p /etc/skel/.local/share/applications
+mkdir -p /etc/skel/.mozilla/firefox/nanite-aiml.default-esr/{chrome,bookmarkbackups}
+mkdir -p /etc/skel/{AI-ML-Projects,AI-ML-Learning}
+mkdir -p /etc/skel/AI-ML-Projects/{notebooks,datasets,models,scripts}
+mkdir -p /etc/skel/AI-ML-Learning/{Cheatsheets,Tutorials,Papers}
+
+# System directories
+mkdir -p /usr/share/{applications,pixmaps,backgrounds}
+mkdir -p /usr/share/applications/ai-tools
+mkdir -p /usr/share/pixmaps/ai-tools
+mkdir -p /usr/share/nanite-aiml/{docs,examples,cheatsheets}
+mkdir -p /usr/share/desktop-directories
+
+# Binary directories
+mkdir -p /usr/local/bin/{safe-launchers,ai-tools}
+mkdir -p /opt/ai-tools
+
+# Calamares directories
+mkdir -p /etc/calamares/{modules,branding/nanite}
+mkdir -p /usr/share/calamares/branding/nanite/slideshow
+
+# Environment directories
+mkdir -p /etc/{environment.d,profile.d,update-motd.d}
+mkdir -p /etc/xdg/menus/applications-merged
+
+# Menu and configuration directories
+mkdir -p /etc/xdg/xfce4/xfconf/xfce-perchannel-xml
+
+# Set proper ownership and permissions
+chown -R root:root /etc/skel 2>/dev/null || true
+chown -R root:root /root 2>/dev/null || true
+
+# Set permissions
+find /etc/skel -type d -exec chmod 755 {} \; 2>/dev/null || true
+find /root -type d -exec chmod 755 {} \; 2>/dev/null || true
+
+echo "I: All required directories created successfully!"
+echo "   ✅ Root user directories: /root/*"
+echo "   ✅ Skeleton directories: /etc/skel/*" 
+echo "   ✅ System directories: /usr/share/*"
+echo "   ✅ Binary directories: /usr/local/bin/*"
+echo "   ✅ Calamares directories: /etc/calamares/*"
+echo ""
+echo "   🛡️ This hook prevents ALL future directory creation errors"

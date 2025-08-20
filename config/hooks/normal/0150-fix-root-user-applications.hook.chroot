@@ -318,6 +318,9 @@ EOF
 # Create desktop shortcuts for root user
 echo "🖥️ Creating root user desktop shortcuts..."
 
+# Ensure root Desktop directory exists
+mkdir -p /root/Desktop
+
 # VS Code shortcut
 cat > /root/Desktop/vscode.desktop << 'EOF'
 [Desktop Entry]
