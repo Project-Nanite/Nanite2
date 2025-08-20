@@ -412,7 +412,7 @@ Version=1.0
 Type=Application
 Name=AI Launcher
 Comment=Quick launcher for AI tools and platforms
-Exec=xfce4-terminal --title="AI Tools Launcher" --command="ai-launcher"
+Exec=x-terminal-emulator --title="AI Tools Launcher" --command="ai-launcher"
 Icon=applications-science
 Terminal=true
 StartupNotify=true

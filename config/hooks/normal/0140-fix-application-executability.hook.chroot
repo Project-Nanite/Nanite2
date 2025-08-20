@@ -50,7 +50,7 @@ show_error() {
     if command -v zenity >/dev/null 2>&1; then
         zenity --error --title="Jupyter Lab Error" --text="$1"
     else
-        xfce4-terminal --title="Error" --command="bash -c 'echo \"ERROR: $1\"; echo \"Press Enter to close...\"; read'"
+        x-terminal-emulator --title="Error" --command="bash -c 'echo \"ERROR: $1\"; echo \"Press Enter to close...\"; read'"
     fi
 }
 
@@ -108,7 +108,7 @@ else
         # No Jupyter available - offer to install
         if command -v zenity >/dev/null 2>&1; then
             if zenity --question --title="Jupyter Lab Not Found" --text="Jupyter Lab is not installed. Would you like to set up the AI/ML environment now?"; then
-                xfce4-terminal --title="AI/ML Environment Setup" --command="setup-aiml-env" &
+                x-terminal-emulator --title="AI/ML Environment Setup" --command="setup-aiml-env" &
             fi
         else
             show_error "Jupyter Lab is not installed. Please run 'setup-aiml-env' to set up the AI/ML environment."

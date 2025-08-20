@@ -213,7 +213,7 @@ cat > /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcut
       <property name="&lt;Alt&gt;F3" type="string" value="xfce4-appfinder"/>
       <property name="&lt;Primary&gt;&lt;Alt&gt;Delete" type="string" value="xflock4"/>
       <property name="&lt;Primary&gt;&lt;Alt&gt;l" type="string" value="xflock4"/>
-      <property name="&lt;Primary&gt;&lt;Alt&gt;t" type="string" value="xfce4-terminal"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;t" type="string" value="x-terminal-emulator"/>
       <property name="XF86Display" type="string" value="xfce4-display-settings --minimal"/>
       <property name="&lt;Super&gt;p" type="string" value="xfce4-display-settings --minimal"/>
       <property name="&lt;Primary&gt;Escape" type="string" value="xfdesktop --menu"/>
@@ -275,7 +275,7 @@ EOF
 
 # Update Whisker Menu favorites to include AI tools
 cat > /etc/skel/.config/xfce4/panel/whiskermenu-1.rc << 'EOF'
-favorites=chatgpt.desktop,claude-ai.desktop,google-gemini.desktop,nanite-aiml-suite.desktop,jupyter-lab-nanite.desktop,firefox-esr.desktop,xfce4-terminal.desktop,thunar.desktop
+favorites=chatgpt.desktop,claude-ai.desktop,google-gemini.desktop,nanite-aiml-suite.desktop,jupyter-lab-nanite.desktop,firefox-esr.desktop,x-terminal-emulator.desktop,thunar.desktop
 recent=
 button-icon=applications-science
 button-title=🤖 Nanite AI/ML
@@ -338,7 +338,7 @@ regex=false
 [action3]
 name=Run in Terminal
 pattern=!
-command=xfce4-terminal --command="%s"
+command=x-terminal-emulator --command="%s"
 regex=false
 
 [action4]

@@ -81,28 +81,28 @@ case $choice in
     9) 
         if command -v ollama >/dev/null 2>&1; then
             echo "🦙 Starting Ollama..."
-            xfce4-terminal --title="Ollama" --command="ollama-start" &
+            x-terminal-emulator --title="Ollama" --command="ollama-start" &
         else
             echo "Installing Ollama..."
-            xfce4-terminal --title="Installing AI Tools" --command="install-advanced-ai-tools" &
+            x-terminal-emulator --title="Installing AI Tools" --command="install-advanced-ai-tools" &
         fi
         ;;
     10)
         if command -v tgpt >/dev/null 2>&1; then
             echo "💬 Starting Terminal GPT..."
-            xfce4-terminal --title="Terminal GPT" --command="bash -c 'echo \"🤖 Terminal GPT Ready\"; tgpt -i'" &
+            x-terminal-emulator --title="Terminal GPT" --command="bash -c 'echo \"🤖 Terminal GPT Ready\"; tgpt -i'" &
         else
             echo "Installing tgpt..."
-            xfce4-terminal --title="Installing AI Tools" --command="install-advanced-ai-tools" &
+            x-terminal-emulator --title="Installing AI Tools" --command="install-advanced-ai-tools" &
         fi
         ;;
     11)
         if command -v gemini >/dev/null 2>&1; then
             echo "🔹 Starting Gemini CLI..."
-            xfce4-terminal --title="Gemini CLI" --command="bash -c 'echo \"🔹 Gemini CLI Ready\"; echo \"Try: gemini chat \\\"your question\\\"\"; bash'" &
+            x-terminal-emulator --title="Gemini CLI" --command="bash -c 'echo \"🔹 Gemini CLI Ready\"; echo \"Try: gemini chat \\\"your question\\\"\"; bash'" &
         else
             echo "Installing Gemini CLI..."
-            xfce4-terminal --title="Installing AI Tools" --command="install-advanced-ai-tools" &
+            x-terminal-emulator --title="Installing AI Tools" --command="install-advanced-ai-tools" &
         fi
         ;;
     12)
@@ -111,7 +111,7 @@ case $choice in
             cursor-ai &
         else
             echo "Installing Cursor AI..."
-            xfce4-terminal --title="Installing AI Tools" --command="install-advanced-ai-tools" &
+            x-terminal-emulator --title="Installing AI Tools" --command="install-advanced-ai-tools" &
         fi
         ;;
     13)
@@ -121,7 +121,7 @@ case $choice in
             /usr/local/bin/safe-launchers/jupyter-root &
         else
             echo "Setting up AI/ML environment..."
-            xfce4-terminal --title="AI/ML Setup" --command="setup-aiml-env" &
+            x-terminal-emulator --title="AI/ML Setup" --command="setup-aiml-env" &
         fi
         ;;
     14)
@@ -529,15 +529,15 @@ cat > /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcut
       <!-- Standard shortcuts -->
       <property name="&lt;Alt&gt;F1" type="string" value="xfce4-popup-whiskermenu"/>
       <property name="&lt;Alt&gt;F2" type="string" value="xfrun4"/>
-      <property name="&lt;Primary&gt;&lt;Alt&gt;t" type="string" value="xfce4-terminal"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;t" type="string" value="x-terminal-emulator"/>
       
       <!-- Enhanced AI Tools Shortcuts -->
       <property name="&lt;Super&gt;a" type="string" value="ai-quick-access"/>
       <property name="&lt;Primary&gt;&lt;Alt&gt;a" type="string" value="ai-terminal"/>
       <property name="&lt;Super&gt;c" type="string" value="firefox --new-window --class='ChatGPT' https://chat.openai.com/"/>
       <property name="&lt;Super&gt;j" type="string" value="/usr/local/bin/safe-launchers/jupyter-root"/>
-      <property name="&lt;Super&gt;o" type="string" value="xfce4-terminal --title='Ollama' --command='ollama-start'"/>
-      <property name="&lt;Super&gt;t" type="string" value="xfce4-terminal --title='Terminal GPT' --command='tgpt -i'"/>
+      <property name="&lt;Super&gt;o" type="string" value="x-terminal-emulator --title='Ollama' --command='ollama-start'"/>
+      <property name="&lt;Super&gt;t" type="string" value="x-terminal-emulator --title='Terminal GPT' --command='tgpt -i'"/>
       <property name="&lt;Super&gt;e" type="string" value="cursor-ai"/>
       <property name="&lt;Super&gt;d" type="string" value="firefox --new-window file:///home/$USER/.mozilla/firefox/nanite-aiml.default-esr/ai-tools-enhanced.html"/>
     </property>

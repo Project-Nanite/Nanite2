@@ -1,0 +1,727 @@
+#!/bin/bash
+
+# Advanced AI Tools Integration Hook for Nanite Linux AI/ML
+# Installs Ollama, tgpt, Gemini CLI, and Cursor AI with desktop integration
+
+set -e
+
+echo "I: Installing advanced AI tools..."
+
+# Create directories for AI tools
+mkdir -p /opt/ai-tools
+mkdir -p /usr/local/bin/ai-tools
+mkdir -p /usr/share/applications/ai-tools
+
+# Create comprehensive AI tools installer script
+cat > /usr/local/bin/install-advanced-ai-tools << 'EOF'
+#!/bin/bash
+# Advanced AI Tools Installer for Nanite Linux
+
+set -e
+
+echo "🤖 Advanced AI Tools Installer"
+echo "============================="
+echo ""
+
+# Function to show progress
+show_progress() {
+    echo "📋 $1"
+}
+
+# Function to show success
+show_success() {
+    echo "✅ $1"
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send "AI Tools" "$1" -i applications-science 2>/dev/null || true
+    fi
+}
+
+# Function to show error
+show_error() {
+    echo "❌ ERROR: $1" >&2
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --error --title="AI Tools Installation Error" --text="$1" 2>/dev/null || true
+    fi
+}
+
+# Check internet connectivity
+check_internet() {
+    if ! ping -c 1 google.com >/dev/null 2>&1; then
+        show_error "No internet connection. Please connect to the internet and try again."
+        exit 1
+    fi
+}
+
+# Install Ollama
+install_ollama() {
+    show_progress "Installing Ollama (Local LLM Runner)..."
+    
+    if command -v ollama >/dev/null 2>&1; then
+        show_success "Ollama already installed"
+        return 0
+    fi
+    
+    # Download and install Ollama
+    curl -fsSL https://ollama.com/install.sh | sh
+    
+    # Create Ollama service for root user
+    if [ "$EUID" -eq 0 ]; then
+        # Configure Ollama for root user
+        mkdir -p /root/.ollama
+        
+        # Create Ollama startup script
+        cat > /usr/local/bin/ollama-start << 'OLLAMA_EOF'
+#!/bin/bash
+# Start Ollama service
+
+echo "🚀 Starting Ollama service..."
+
+# Start Ollama in background
+OLLAMA_HOST=127.0.0.1:11434 ollama serve &
+OLLAMA_PID=$!
+
+echo "Ollama PID: $OLLAMA_PID"
+echo "Ollama running at: http://127.0.0.1:11434"
+
+# Wait for Ollama to be ready
+sleep 3
+
+# Check if Ollama is running
+if curl -s http://127.0.0.1:11434 >/dev/null 2>&1; then
+    echo "✅ Ollama service started successfully"
+    
+    # Pull a popular model if none exists
+    if ! ollama list | grep -q "llama"; then
+        echo "📦 Pulling llama3.2:1b model (lightweight)..."
+        ollama pull llama3.2:1b
+    fi
+else
+    echo "❌ Failed to start Ollama service"
+    exit 1
+fi
+OLLAMA_EOF
+        
+        chmod +x /usr/local/bin/ollama-start
+    fi
+    
+    show_success "Ollama installed successfully"
+}
+
+# Install tgpt
+install_tgpt() {
+    show_progress "Installing tgpt (Terminal GPT Client)..."
+    
+    if command -v tgpt >/dev/null 2>&1; then
+        show_success "tgpt already installed"
+        return 0
+    fi
+    
+    # Install tgpt
+    curl -sSL https://raw.githubusercontent.com/aandrew-me/tgpt/main/install | bash -s /usr/local/bin
+    
+    # Make sure it's executable
+    chmod +x /usr/local/bin/tgpt
+    
+    show_success "tgpt installed successfully"
+}
+
+# Install Gemini CLI
+install_gemini_cli() {
+    show_progress "Installing Google Gemini CLI..."
+    
+    if command -v gemini >/dev/null 2>&1; then
+        show_success "Gemini CLI already installed"
+        return 0
+    fi
+    
+    # Check if Node.js is available
+    if ! command -v npm >/dev/null 2>&1; then
+        show_error "Node.js/npm not found. Please install Node.js first."
+        return 1
+    fi
+    
+    # Install Gemini CLI globally
+    npm install -g @google/gemini-cli
+    
+    show_success "Gemini CLI installed successfully"
+}
+
+# Install Cursor AI
+install_cursor_ai() {
+    show_progress "Installing Cursor AI (AI-Powered Editor)..."
+    
+    if [ -f /opt/ai-tools/Cursor.AppImage ]; then
+        show_success "Cursor AI already installed"
+        return 0
+    fi
+    
+    # Create Cursor directory
+    mkdir -p /opt/ai-tools
+    cd /opt/ai-tools
+    
+    # Download Cursor AI AppImage
+    curl -L -o Cursor.AppImage "https://downloads.cursor.com/production/af58d92614edb1f72bdd756615d131bf8dfa5299/linux/x64/Cursor-1.4.5-x86_64.AppImage"
+    
+    # Make it executable
+    chmod +x Cursor.AppImage
+    
+    # Create Cursor launcher script for root compatibility
+    cat > /usr/local/bin/cursor-ai << 'CURSOR_EOF'
+#!/bin/bash
+# Cursor AI Launcher with root compatibility
+
+cd /opt/ai-tools
+
+if [ "$EUID" -eq 0 ]; then
+    # Running as root - use safe approach
+    echo "🔧 Launching Cursor AI with root user compatibility..."
+    
+    # Create or use existing non-root user for Cursor
+    if ! id -u nanite-user >/dev/null 2>&1; then
+        useradd -m -s /bin/bash -G sudo,audio,video,plugdev,netdev nanite-user 2>/dev/null || true
+        echo "nanite-user:nanite" | chpasswd 2>/dev/null || true
+        
+        # Copy AI/ML projects to user
+        if [ -d /root/AI-ML-Projects ]; then
+            cp -r /root/AI-ML-Projects /home/nanite-user/ 2>/dev/null || true
+            chown -R nanite-user:nanite-user /home/nanite-user/AI-ML-Projects 2>/dev/null || true
+        fi
+    fi
+    
+    # Launch as nanite-user with proper display
+    sudo -u nanite-user -H bash -c "
+        export DISPLAY=:0
+        export XAUTHORITY=/root/.Xauthority
+        cd /home/nanite-user/AI-ML-Projects 2>/dev/null || cd /home/nanite-user
+        /opt/ai-tools/Cursor.AppImage --no-sandbox --disable-gpu-sandbox
+    " &
+else
+    # Not running as root - launch normally
+    ./Cursor.AppImage "$@" &
+fi
+CURSOR_EOF
+    
+    chmod +x /usr/local/bin/cursor-ai
+    
+    show_success "Cursor AI installed successfully"
+}
+
+# Create desktop integration
+create_desktop_integration() {
+    show_progress "Creating desktop integration..."
+    
+    # Ollama desktop file
+    cat > /usr/share/applications/ollama.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Ollama
+Comment=Local Large Language Model Runner
+Exec=xfce4-terminal --title="Ollama" --command="bash -c 'ollama-start; echo; echo Press Enter to close...; read'"
+Icon=applications-science
+Terminal=true
+StartupNotify=true
+Categories=Development;AI-Tools;Science;
+Keywords=ollama;llm;ai;local;language;model;
+EOF
+    
+    # tgpt desktop file
+    cat > /usr/share/applications/tgpt.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Terminal GPT
+Comment=Fast and feature-rich terminal ChatGPT client
+Exec=xfce4-terminal --title="Terminal GPT" --command="bash -c 'echo \"🤖 Terminal GPT - Type your question and press Enter\"; echo \"Type 'exit' to quit\"; echo; tgpt -i'"
+Icon=utilities-terminal
+Terminal=true
+StartupNotify=true
+Categories=Network;AI-Tools;ConsoleOnly;
+Keywords=tgpt;chatgpt;ai;terminal;cli;gpt;
+EOF
+    
+    # Gemini CLI desktop file
+    cat > /usr/share/applications/gemini-cli.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Gemini CLI
+Comment=Google Gemini command-line interface
+Exec=xfce4-terminal --title="Gemini CLI" --command="bash -c 'echo \"🔹 Google Gemini CLI\"; echo \"Usage: gemini chat [your question]\"; echo \"Example: gemini chat \\\"What is AI?\\\"\"; echo; echo \"Type your command:\"; bash'"
+Icon=google-chrome
+Terminal=true
+StartupNotify=true
+Categories=Network;AI-Tools;ConsoleOnly;
+Keywords=gemini;google;ai;cli;command;line;
+EOF
+    
+    # Cursor AI desktop file
+    cat > /usr/share/applications/cursor-ai.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Cursor AI
+Comment=AI-Powered Code Editor
+Exec=cursor-ai %F
+Icon=text-editor
+Terminal=false
+StartupNotify=true
+Categories=Development;TextEditor;AI-Tools;
+Keywords=cursor;ai;editor;code;development;programming;
+MimeType=text/plain;text/x-chdr;text/x-csrc;text/x-c++hdr;text/x-c++src;text/x-java;text/x-dsrc;text/x-pascal;text/x-perl;text/x-python;application/x-php;application/x-httpd-php3;application/x-httpd-php4;application/x-httpd-php5;application/xml;text/html;text/css;text/x-sql;text/x-diff;
+EOF
+    
+    # Make desktop files readable
+    chmod 644 /usr/share/applications/ollama.desktop 2>/dev/null || true
+    chmod 644 /usr/share/applications/tgpt.desktop 2>/dev/null || true
+    chmod 644 /usr/share/applications/gemini-cli.desktop 2>/dev/null || true
+    chmod 644 /usr/share/applications/cursor-ai.desktop 2>/dev/null || true
+    
+    echo "✅ Desktop integration created"
+}
+
+# Create terminal AI tools launcher
+create_ai_terminal_launcher() {
+    echo "📋 Creating AI terminal launcher..."
+    
+    cat > /usr/local/bin/ai-terminal << 'EOF'
+#!/bin/bash
+# AI Terminal Tools Launcher
+
+echo "🤖 AI Terminal Tools"
+echo "==================="
+echo ""
+echo "Available AI tools:"
+echo "1. Ollama (Local LLM)"
+echo "2. tgpt (Terminal GPT)"
+echo "3. Gemini CLI"
+echo "4. All tools menu"
+echo "5. Exit"
+echo ""
+
+read -p "Choose option (1-5): " choice
+
+case $choice in
+    1)
+        echo "🦙 Starting Ollama..."
+        if command -v ollama >/dev/null 2>&1; then
+            ollama-start
+            echo ""
+            echo "Try: ollama run llama3.2:1b"
+            echo "Or: ollama list (to see available models)"
+            bash
+        else
+            echo "Ollama not installed. Run 'install-advanced-ai-tools'"
+        fi
+        ;;
+    2)
+        echo "💬 Starting Terminal GPT..."
+        if command -v tgpt >/dev/null 2>&1; then
+            echo "Type your question or 'exit' to quit"
+            tgpt -i
+        else
+            echo "tgpt not installed. Run 'install-advanced-ai-tools'"
+        fi
+        ;;
+    3)
+        echo "🔹 Gemini CLI"
+        if command -v gemini >/dev/null 2>&1; then
+            echo "Usage examples:"
+            echo "  gemini chat \"What is machine learning?\""
+            echo "  gemini generate \"Write a Python function\""
+            echo ""
+            bash
+        else
+            echo "Gemini CLI not installed. Run 'install-advanced-ai-tools'"
+        fi
+        ;;
+    4)
+        if command -v ai-quick-access >/dev/null 2>&1; then
+            ai-quick-access
+        else
+            echo "AI tools menu not available"
+        fi
+        ;;
+    5)
+        exit 0
+        ;;
+    *)
+        echo "Invalid choice"
+        ;;
+esac
+EOF
+    
+    chmod +x /usr/local/bin/ai-terminal
+    
+    # Create desktop file for AI terminal
+    cat > /usr/share/applications/ai-terminal.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AI Terminal Tools
+Comment=Terminal-based AI tools launcher
+Exec=xfce4-terminal --title="AI Terminal Tools" --command="ai-terminal"
+Icon=utilities-terminal
+Terminal=true
+StartupNotify=true
+Categories=System;AI-Tools;ConsoleOnly;
+Keywords=ai;terminal;cli;tools;launcher;
+EOF
+    
+    chmod 644 /usr/share/applications/ai-terminal.desktop 2>/dev/null || true
+}
+
+# Create desktop files during build (not just in installation script)
+echo "📱 Creating AI tools desktop files during build..."
+
+# Call functions to create desktop integration
+create_desktop_integration
+create_ai_terminal_launcher
+
+# Main installation process
+main() {
+    echo "This will install advanced AI tools:"
+    echo "  • Ollama (Local LLM Runner)"  
+    echo "  • tgpt (Terminal GPT Client)"
+    echo "  • Gemini CLI (Google's AI CLI)"
+    echo "  • Cursor AI (AI Code Editor)"
+    echo ""
+    echo "This requires internet connection and may take several minutes."
+    echo ""
+    
+    if [ "$EUID" -ne 0 ]; then
+        echo "⚠️  This script requires root privileges"
+        echo "   Running with sudo..."
+        exec sudo "$0" "$@"
+    fi
+    
+    # Check internet
+    check_internet
+    
+    echo "🚀 Starting installation..."
+    echo ""
+    
+    # Install each tool
+    install_ollama
+    echo ""
+    
+    install_tgpt
+    echo ""
+    
+    install_gemini_cli
+    echo ""
+    
+    install_cursor_ai
+    echo ""
+    
+    # Desktop integration already created above
+    echo "📱 Desktop integration during build completed..."
+    
+    # Update desktop database
+    update-desktop-database /usr/share/applications 2>/dev/null || true
+    
+    echo ""
+    echo "🎉 Advanced AI tools installation completed!"
+    echo ""
+    echo "📋 Installed tools:"
+    echo "   ✅ Ollama - Local LLM runner"
+    echo "   ✅ tgpt - Terminal GPT client"
+    echo "   ✅ Gemini CLI - Google's AI CLI"
+    echo "   ✅ Cursor AI - AI-powered editor"
+    echo ""
+    echo "🚀 Quick start:"
+    echo "   • Find all tools in Applications → AI Tools"
+    echo "   • Desktop shortcuts available"
+    echo "   • Run 'ai-terminal' for terminal tools"
+    echo "   • Run 'ollama-start' to start local LLM"
+    echo ""
+    echo "🔄 Please log out and back in to see all desktop shortcuts"
+}
+
+# Note: The main() function is for runtime use by users
+# During build, we only create the desktop files and scripts
+echo "I: Advanced AI tools setup completed!"
+echo "   ✅ Desktop files created for all AI tools"
+echo "   ✅ Installation script ready: install-advanced-ai-tools" 
+echo "   ✅ Desktop shortcuts prepared"
+echo "   ✅ All tools ready for user installation"
+EOF
+
+chmod +x /usr/local/bin/install-advanced-ai-tools
+
+# Create desktop shortcuts in skeleton for new users
+echo "🖥️ Creating desktop shortcuts..."
+
+# Create Ollama desktop shortcut
+cat > /etc/skel/Desktop/ollama.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=🦙 Ollama
+Comment=Local Large Language Model Runner
+Exec=xfce4-terminal --title="Ollama" --command="bash -c 'if command -v ollama >/dev/null 2>&1; then ollama-start; else echo \"Installing Ollama...\"; install-advanced-ai-tools; fi'"
+Icon=applications-science
+Terminal=true
+StartupNotify=true
+Categories=Development;AI-Tools;Science;
+Keywords=ollama;llm;ai;local;language;model;
+EOF
+
+# Create tgpt desktop shortcut
+cat > /etc/skel/Desktop/terminal-gpt.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=💬 Terminal GPT
+Comment=Fast terminal ChatGPT client
+Exec=xfce4-terminal --title="Terminal GPT" --command="bash -c 'if command -v tgpt >/dev/null 2>&1; then echo \"🤖 Terminal GPT Ready\"; echo \"Ask anything or type exit to quit\"; tgpt -i; else echo \"Installing tgpt...\"; install-advanced-ai-tools; fi'"
+Icon=utilities-terminal
+Terminal=true
+StartupNotify=true
+Categories=Network;AI-Tools;ConsoleOnly;
+Keywords=tgpt;chatgpt;ai;terminal;cli;gpt;
+EOF
+
+# Create Cursor AI desktop shortcut
+cat > /etc/skel/Desktop/cursor-ai.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=✨ Cursor AI
+Comment=AI-Powered Code Editor
+Exec=bash -c 'if command -v cursor-ai >/dev/null 2>&1; then cursor-ai; else zenity --question --text="Cursor AI not installed. Install now?" && xfce4-terminal --command="install-advanced-ai-tools" || true; fi'
+Icon=text-editor
+Terminal=false
+StartupNotify=true
+Categories=Development;TextEditor;AI-Tools;
+Keywords=cursor;ai;editor;code;development;programming;
+EOF
+
+# Create advanced AI tools installer shortcut
+cat > /etc/skel/Desktop/install-advanced-ai-tools.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=🚀 Install Advanced AI Tools
+Comment=Install Ollama, tgpt, Gemini CLI, and Cursor AI
+Exec=xfce4-terminal --title="Advanced AI Tools Installation" --command="install-advanced-ai-tools"
+Icon=system-software-install
+Terminal=true
+StartupNotify=true
+Categories=System;Development;AI-Tools;
+Keywords=ai;tools;install;ollama;tgpt;gemini;cursor;
+EOF
+
+# Make desktop shortcuts executable
+chmod +x /etc/skel/Desktop/*.desktop 2>/dev/null || true
+
+# Copy to root desktop if it exists
+if [ -d /root/Desktop ]; then
+    cp /etc/skel/Desktop/ollama.desktop /root/Desktop/ 2>/dev/null || true
+    cp /etc/skel/Desktop/terminal-gpt.desktop /root/Desktop/ 2>/dev/null || true
+    cp /etc/skel/Desktop/cursor-ai.desktop /root/Desktop/ 2>/dev/null || true
+    cp /etc/skel/Desktop/install-advanced-ai-tools.desktop /root/Desktop/ 2>/dev/null || true
+    chmod +x /root/Desktop/*.desktop 2>/dev/null || true
+fi
+
+# Update AI quick access menu to include new tools
+echo "🔄 Updating AI tools menu integration..."
+
+# Update the AI quick access script
+if [ -f /usr/local/bin/ai-quick-access ]; then
+    # Add new tools to the existing menu - we'll extend it in the next hook
+    echo "# Advanced AI tools will be integrated" >> /usr/local/bin/ai-quick-access
+fi
+
+# Create information file about advanced AI tools
+cat > /etc/skel/AI-ML-Projects/ADVANCED-AI-TOOLS.md << 'EOF'
+# 🚀 Advanced AI Tools
+
+Your Nanite Linux AI/ML Edition includes cutting-edge AI tools for development and interaction.
+
+## 🛠️ Included Advanced Tools
+
+### 🦙 **Ollama** - Local LLM Runner
+- **Purpose**: Run large language models locally without internet
+- **Models**: Llama, Mistral, CodeLlama, and more
+- **Usage**: `ollama run llama3.2:1b`
+- **Web UI**: Available at http://localhost:11434
+
+### 💬 **tgpt** - Terminal GPT Client  
+- **Purpose**: Fast ChatGPT access from terminal
+- **Features**: Interactive mode, shell integration
+- **Usage**: `tgpt "What is machine learning?"`
+- **Interactive**: `tgpt -i` for chat mode
+
+### 🔹 **Gemini CLI** - Google's AI CLI
+- **Purpose**: Access Google's Gemini AI from command line
+- **Features**: Text generation, chat, analysis
+- **Usage**: `gemini chat "Explain neural networks"`
+- **Setup**: Requires Google API key
+
+### ✨ **Cursor AI** - AI-Powered Editor
+- **Purpose**: Code editor with built-in AI assistance
+- **Features**: AI completions, chat, code generation
+- **Launch**: Click desktop icon or run `cursor-ai`
+- **Compatibility**: Works with root user via safe launcher
+
+## 🚀 Quick Start
+
+### Installation
+1. **Desktop Method**: Click "🚀 Install Advanced AI Tools" on desktop
+2. **Terminal Method**: Run `install-advanced-ai-tools`
+3. **Menu Method**: Applications → AI Tools → Install Advanced Tools
+
+### Usage Examples
+
+#### Ollama (Local AI)
+```bash
+# Start Ollama service
+ollama-start
+
+# Chat with local model
+ollama run llama3.2:1b
+>>> What is Python?
+
+# List available models
+ollama list
+```
+
+#### Terminal GPT
+```bash
+# Quick question
+tgpt "Write a Python function to sort a list"
+
+# Interactive chat mode
+tgpt -i
+```
+
+#### Gemini CLI
+```bash
+# Chat with Gemini
+gemini chat "Explain machine learning concepts"
+
+# Generate content
+gemini generate "Write a poem about AI"
+```
+
+#### Cursor AI
+- Click desktop shortcut to launch
+- AI-powered code completions
+- Built-in AI chat for coding help
+- Works safely with root user
+
+## 🎯 Integration Features
+
+### Desktop Integration
+- **Desktop shortcuts** for all tools
+- **Application menu** entries
+- **Panel integration** with existing AI tools
+- **Root user compatibility** for all applications
+
+### Terminal Integration
+- **ai-terminal** - Unified terminal AI launcher
+- **Shell aliases** for quick access
+- **Interactive modes** for all CLI tools
+
+### Development Workflow
+- **Cursor AI** for AI-assisted coding
+- **Ollama** for local model development
+- **tgpt** for quick AI assistance
+- **Gemini CLI** for content generation
+
+## 🔧 Troubleshooting
+
+### Common Issues
+- **No internet**: Ollama works offline, others need connection
+- **Root user**: All tools have root compatibility fixes
+- **Missing tools**: Run `install-advanced-ai-tools` again
+
+### Verification Commands
+```bash
+# Check installations
+ollama --version
+tgpt --version  
+gemini --version
+cursor-ai --version
+
+# Test functionality
+ai-terminal              # Launch tool menu
+check-root-apps          # Check compatibility
+```
+
+## 💡 Tips & Best Practices
+
+### Ollama
+- Start with lightweight models (1B-3B parameters)
+- Use `ollama pull` to download models in advance
+- Monitor system resources with larger models
+
+### tgpt
+- Use interactive mode for conversations
+- Pipe commands: `echo "question" | tgpt`
+- Save responses to files for later use
+
+### Gemini CLI
+- Set up API key for full functionality
+- Use specific prompts for better results
+- Combine with other CLI tools via pipes
+
+### Cursor AI
+- Familiarize with AI chat commands (Ctrl+K)
+- Use AI for code explanations and refactoring
+- Leverage AI completions for faster coding
+
+---
+*Advanced AI tools integrated into Nanite Linux AI/ML Edition*
+EOF
+
+# Create AI tools status checker
+cat > /usr/local/bin/check-advanced-ai-tools << 'EOF'
+#!/bin/bash
+# Check status of advanced AI tools
+
+echo "🤖 Advanced AI Tools Status"
+echo "============================"
+
+tools=("ollama" "tgpt" "gemini" "cursor-ai")
+installed=0
+total=${#tools[@]}
+
+for tool in "${tools[@]}"; do
+    if command -v "$tool" >/dev/null 2>&1; then
+        echo "✅ $tool: Installed"
+        ((installed++))
+    else
+        echo "❌ $tool: Not installed"
+    fi
+done
+
+echo ""
+echo "📊 Summary: $installed/$total tools installed"
+
+if [ $installed -lt $total ]; then
+    echo ""
+    echo "💡 To install missing tools: install-advanced-ai-tools"
+fi
+
+echo ""
+echo "🖥️ Desktop shortcuts available:"
+ls /root/Desktop/*ai*.desktop /root/Desktop/ollama.desktop /root/Desktop/terminal-gpt.desktop 2>/dev/null | wc -l | xargs echo "   Count:"
+EOF
+
+chmod +x /usr/local/bin/check-advanced-ai-tools
+
+echo "I: Advanced AI tools setup completed!"
+echo "   ✅ Installer script created: install-advanced-ai-tools"
+echo "   ✅ Desktop shortcuts created for all tools"
+echo "   ✅ Root user compatibility ensured"
+echo "   ✅ Application menu integration prepared"
+echo "   ✅ Terminal launcher created: ai-terminal"
+echo "   ✅ Status checker created: check-advanced-ai-tools"
+echo ""
+echo "   🚀 Users can run 'install-advanced-ai-tools' to install:"
+echo "      • Ollama (Local LLM Runner)"
+echo "      • tgpt (Terminal GPT Client)" 
+echo "      • Gemini CLI (Google AI CLI)"
+echo "      • Cursor AI (AI Code Editor)"

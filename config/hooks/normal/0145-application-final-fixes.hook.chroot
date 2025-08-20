@@ -26,7 +26,7 @@ Version=1.0
 Type=Application
 Name=Setup AI/ML Environment
 Comment=Configure your AI/ML development environment
-Exec=xfce4-terminal --title="AI/ML Environment Setup" --command="setup-aiml-env"
+Exec=x-terminal-emulator --title="AI/ML Environment Setup" --command="setup-aiml-env"
 Icon=applications-science
 Terminal=true
 StartupNotify=true
@@ -43,7 +43,7 @@ Version=1.0
 Type=Application
 Name=Check AI/ML Status
 Comment=Check the status of your AI/ML environment
-Exec=xfce4-terminal --title="AI/ML Environment Status" --command="bash -c 'check-aiml-env; echo; echo \"Press Enter to close...\"; read'"
+Exec=x-terminal-emulator --title="AI/ML Environment Status" --command="bash -c 'check-aiml-env; echo; echo \"Press Enter to close...\"; read'"
 Icon=utilities-system-monitor
 Terminal=true
 StartupNotify=true

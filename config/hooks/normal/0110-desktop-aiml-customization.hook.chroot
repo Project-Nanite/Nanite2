@@ -20,7 +20,7 @@ Version=1.0
 Type=Application
 Name=Nanite AI/ML Suite
 Comment=Launch comprehensive AI/ML development environment
-Exec=bash -c 'source ~/ai-ml-env/bin/activate 2>/dev/null || setup-aiml-env; xfce4-terminal --title="AI/ML Terminal" --command="bash -c \"echo '\''🤖 Nanite AI/ML Development Environment'\''; echo '\''========================================='\''; echo '\''Available commands:'\''; echo '\''  • jupyter lab          - Launch Jupyter Lab'\''; echo '\''  • spyder              - Launch Spyder IDE'\''; echo '\''  • python              - Python interpreter'\''; echo '\''  • setup-aiml-env      - Setup AI/ML environment'\''; echo '\'\'\'\'\''; exec bash\"" &'
+Exec=bash -c 'source ~/ai-ml-env/bin/activate 2>/dev/null || setup-aiml-env; x-terminal-emulator --title="AI/ML Terminal" --command="bash -c \"echo '\''🤖 Nanite AI/ML Development Environment'\''; echo '\''========================================='\''; echo '\''Available commands:'\''; echo '\''  • jupyter lab          - Launch Jupyter Lab'\''; echo '\''  • spyder              - Launch Spyder IDE'\''; echo '\''  • python              - Python interpreter'\''; echo '\''  • setup-aiml-env      - Setup AI/ML environment'\''; echo '\'\'\'\'\''; exec bash\"" &'
 Icon=applications-science
 Terminal=false
 StartupNotify=true
@@ -220,7 +220,7 @@ Happy coding! 🎉"
 
 # Ask if user wants to setup AI/ML environment now
 if zenity --question --title="Setup AI/ML Environment" --text="Would you like to setup your AI/ML Python environment now?\n\nThis will install additional packages and create your development workspace."; then
-    xfce4-terminal --title="AI/ML Setup" --command="bash -c 'setup-aiml-env; echo; echo \"Press Enter to continue...\"; read'"
+    x-terminal-emulator --title="AI/ML Setup" --command="bash -c 'setup-aiml-env; echo; echo \"Press Enter to continue...\"; read'"
 fi
 EOF
 

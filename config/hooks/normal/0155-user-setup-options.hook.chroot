@@ -116,7 +116,7 @@ Version=1.0
 Type=Application
 Name=👤 User Setup Options
 Comment=Configure user account for better application compatibility
-Exec=xfce4-terminal --title="User Setup Options" --command="setup-proper-user"
+Exec=x-terminal-emulator --title="User Setup Options" --command="setup-proper-user"
 Icon=user-info
 Terminal=true
 StartupNotify=true

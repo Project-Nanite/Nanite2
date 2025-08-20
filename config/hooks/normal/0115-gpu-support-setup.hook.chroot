@@ -206,7 +206,7 @@ Version=1.0
 Type=Application
 Name=GPU Setup (AI/ML)
 Comment=Setup NVIDIA CUDA or AMD ROCm for AI/ML acceleration
-Exec=xfce4-terminal --title="GPU Setup" --command="setup-gpu-aiml"
+Exec=x-terminal-emulator --title="GPU Setup" --command="setup-gpu-aiml"
 Icon=preferences-system
 Terminal=true
 StartupNotify=true

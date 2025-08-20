@@ -344,7 +344,7 @@ Version=1.0
 Type=Application
 Name=🤖 Setup AI/ML Environment
 Comment=Configure your AI/ML development environment
-Exec=xfce4-terminal --title="AI/ML Environment Setup" --command="bash -c 'setup-aiml-env; echo; echo Press Enter to continue...; read'"
+Exec=x-terminal-emulator --title="AI/ML Environment Setup" --command="bash -c 'setup-aiml-env; echo; echo Press Enter to continue...; read'"
 Icon=applications-science
 Terminal=true
 StartupNotify=true

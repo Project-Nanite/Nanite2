@@ -262,7 +262,7 @@ Version=1.0
 Type=Application
 Name=Install Additional AI/ML Tools
 Comment=Install VS Code, Postman, Zotero, and other tools not in Debian repos
-Exec=xfce4-terminal --title="Additional AI/ML Tools Installer" --command="install-additional-aiml-tools"
+Exec=x-terminal-emulator --title="Additional AI/ML Tools Installer" --command="install-additional-aiml-tools"
 Icon=system-software-install
 Terminal=true
 StartupNotify=true
