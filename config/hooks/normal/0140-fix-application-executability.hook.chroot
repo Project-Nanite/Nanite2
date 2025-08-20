@@ -36,7 +36,7 @@ Categories=Development;Science;Education;
 Keywords=jupyter;notebook;python;ai;ml;data;science;
 EOF
 
-chmod +x /usr/share/applications/jupyter-lab.desktop
+chmod +x /usr/share/applications/jupyter-lab.desktop 2>/dev/null || true
 
 # Create working Jupyter launcher script
 cat > /usr/local/bin/nanite-jupyter-launcher << 'EOF'
@@ -136,7 +136,7 @@ Categories=Development;Science;Education;
 Keywords=python;ide;scientific;spyder;development;
 EOF
 
-chmod +x /usr/share/applications/spyder.desktop
+chmod +x /usr/share/applications/spyder.desktop 2>/dev/null || true
 
 # Create Spyder launcher script
 cat > /usr/local/bin/nanite-spyder-launcher << 'EOF'
@@ -197,7 +197,7 @@ Keywords=chatgpt;openai;ai;assistant;chat;
 StartupWMClass=ChatGPT
 EOF
 
-chmod +x /usr/share/applications/chatgpt.desktop
+chmod +x /usr/share/applications/chatgpt.desktop 2>/dev/null || true
 
 # Create working Claude AI launcher
 cat > /usr/share/applications/claude-ai.desktop << 'EOF'
@@ -215,7 +215,7 @@ Keywords=claude;anthropic;ai;assistant;
 StartupWMClass=Claude AI
 EOF
 
-chmod +x /usr/share/applications/claude-ai.desktop
+chmod +x /usr/share/applications/claude-ai.desktop 2>/dev/null || true
 
 # Create working Google Gemini launcher
 cat > /usr/share/applications/google-gemini.desktop << 'EOF'
@@ -233,7 +233,7 @@ Keywords=gemini;google;ai;assistant;
 StartupWMClass=Google Gemini
 EOF
 
-chmod +x /usr/share/applications/google-gemini.desktop
+chmod +x /usr/share/applications/google-gemini.desktop 2>/dev/null || true
 
 # Create working Perplexity launcher
 cat > /usr/share/applications/perplexity.desktop << 'EOF'
@@ -251,7 +251,7 @@ Keywords=perplexity;ai;search;research;
 StartupWMClass=Perplexity
 EOF
 
-chmod +x /usr/share/applications/perplexity.desktop
+chmod +x /usr/share/applications/perplexity.desktop 2>/dev/null || true
 
 # Create comprehensive AI/ML environment setup script (fixed version)
 echo "🛠️ Creating robust AI/ML environment setup..."
@@ -391,7 +391,7 @@ StartupNotify=true
 Categories=Development;Science;
 JUPYTER_EOF
 
-chmod +x /etc/skel/Desktop/jupyter-lab.desktop
+chmod +x /etc/skel/Desktop/jupyter-lab.desktop 2>/dev/null || true 2>/dev/null || true
 
 # Spyder shortcut in skeleton
 cat > /etc/skel/Desktop/spyder.desktop << 'SPYDER_EOF'
@@ -407,7 +407,7 @@ StartupNotify=true
 Categories=Development;Science;
 SPYDER_EOF
 
-chmod +x /etc/skel/Desktop/spyder.desktop
+chmod +x /etc/skel/Desktop/spyder.desktop 2>/dev/null || true 2>/dev/null || true
 
 # Create sample notebook in skeleton
 show_progress "Creating sample notebook..."

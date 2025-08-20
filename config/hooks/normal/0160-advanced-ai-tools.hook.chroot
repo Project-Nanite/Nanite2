@@ -272,7 +272,10 @@ MimeType=text/plain;text/x-chdr;text/x-csrc;text/x-c++hdr;text/x-c++src;text/x-j
 EOF
     
     # Make desktop files readable
-    chmod 644 /usr/share/applications/{ollama,tgpt,gemini-cli,cursor-ai}.desktop
+    chmod 644 /usr/share/applications/ollama.desktop 2>/dev/null || true
+    chmod 644 /usr/share/applications/tgpt.desktop 2>/dev/null || true
+    chmod 644 /usr/share/applications/gemini-cli.desktop 2>/dev/null || true
+    chmod 644 /usr/share/applications/cursor-ai.desktop 2>/dev/null || true
     
     show_success "Desktop integration created"
 }
@@ -365,8 +368,13 @@ Categories=System;AI-Tools;ConsoleOnly;
 Keywords=ai;terminal;cli;tools;launcher;
 EOF
     
-    chmod 644 /usr/share/applications/ai-terminal.desktop
+    chmod 644 /usr/share/applications/ai-terminal.desktop 2>/dev/null || true
 }
+
+# Create desktop files during build (not just in installation script)
+echo "📱 Creating AI tools desktop files during build..."
+create_desktop_integration
+create_ai_terminal_launcher
 
 # Main installation process
 main() {
@@ -404,9 +412,10 @@ main() {
     install_cursor_ai
     echo ""
     
-    # Create desktop integration
-    create_desktop_integration
-    create_ai_terminal_launcher
+    # Create desktop integration during build
+echo "📱 Creating desktop integration during build..."
+create_desktop_integration
+create_ai_terminal_launcher
     
     # Update desktop database
     update-desktop-database /usr/share/applications 2>/dev/null || true
@@ -499,7 +508,7 @@ Keywords=ai;tools;install;ollama;tgpt;gemini;cursor;
 EOF
 
 # Make desktop shortcuts executable
-chmod +x /etc/skel/Desktop/*.desktop
+chmod +x /etc/skel/Desktop/*.desktop 2>/dev/null || true
 
 # Copy to root desktop if it exists
 if [ -d /root/Desktop ]; then

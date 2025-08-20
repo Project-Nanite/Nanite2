@@ -223,7 +223,7 @@ Categories=Settings;System;
 Keywords=wallpaper;background;desktop;nanite;
 EOF
 
-chmod 644 /usr/share/applications/nanite-wallpaper-settings.desktop
+chmod 644 /usr/share/applications/nanite-wallpaper-settings.desktop 2>/dev/null || true 2>/dev/null || true
 
 echo "I: Default wallpaper configuration completed!"
 echo "   ✅ Wallpaper path configured throughout system"

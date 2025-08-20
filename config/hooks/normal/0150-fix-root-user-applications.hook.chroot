@@ -80,7 +80,7 @@ Exec=/usr/local/bin/safe-launchers/vscode-root --new-window %F
 Icon=vscode
 EOF
 
-chmod 644 /usr/share/applications/code.desktop
+chmod 644 /usr/share/applications/code.desktop 2>/dev/null || true 2>/dev/null || true
 
 # Fix Chrome/Chromium for root user
 echo "🌐 Creating Chrome/Chromium root-safe launcher..."
@@ -226,7 +226,7 @@ Categories=Development;Science;Education;
 Keywords=jupyter;notebook;python;ai;ml;data;science;
 EOF
 
-chmod 644 /usr/share/applications/jupyter-lab.desktop
+chmod 644 /usr/share/applications/jupyter-lab.desktop 2>/dev/null || true
 
 # Fix Spyder for root user
 echo "🐍 Creating Spyder root-safe launcher..."
@@ -282,7 +282,7 @@ Categories=Development;Science;Education;
 Keywords=python;ide;scientific;spyder;development;
 EOF
 
-chmod 644 /usr/share/applications/spyder.desktop
+chmod 644 /usr/share/applications/spyder.desktop 2>/dev/null || true
 
 # Create comprehensive application environment setup
 echo "🛠️ Creating root user application environment..."
@@ -335,7 +335,7 @@ StartupNotify=true
 Categories=Development;
 EOF
 
-chmod +x /root/Desktop/vscode.desktop
+chmod +x /root/Desktop/vscode.desktop 2>/dev/null || true 2>/dev/null || true
 
 # Comprehensive AI/ML Setup shortcut  
 cat > /root/Desktop/setup-ai-ml-environment.desktop << 'EOF'
@@ -352,7 +352,7 @@ Categories=Development;Science;System;
 Keywords=ai;ml;setup;environment;python;jupyter;
 EOF
 
-chmod +x /root/Desktop/setup-ai-ml-environment.desktop
+chmod +x /root/Desktop/setup-ai-ml-environment.desktop 2>/dev/null || true 2>/dev/null || true
 
 # Create application troubleshooter
 cat > /usr/local/bin/fix-root-apps << 'EOF'

@@ -105,42 +105,9 @@ pip install -r ~/ai-ml-requirements.txt
 echo "📦 Installing additional Python packages..."
 pip install spyder jupyter-lab ipywidgets
 
-# Create desktop shortcuts
-echo "🖥️ Creating desktop shortcuts..."
-
-# Jupyter Lab shortcut
-cat > ~/Desktop/jupyter-lab.desktop << 'JUPYTER_EOF'
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=Jupyter Lab (AI/ML)
-Comment=Launch Jupyter Lab with AI/ML environment
-Exec=bash -c "source ~/ai-ml-env/bin/activate && jupyter lab --notebook-dir=~/AI-ML-Projects"
-Icon=jupyter
-Terminal=true
-StartupNotify=true
-Categories=Development;Science;
-Keywords=jupyter;python;ai;ml;data;science;
-JUPYTER_EOF
-
-chmod +x ~/Desktop/jupyter-lab.desktop
-
-# Spyder shortcut  
-cat > ~/Desktop/spyder-aiml.desktop << 'SPYDER_EOF'
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=Spyder (AI/ML)
-Comment=Scientific Python IDE with AI/ML environment
-Exec=bash -c "source ~/ai-ml-env/bin/activate && spyder"
-Icon=spyder
-Terminal=false
-StartupNotify=true
-Categories=Development;Science;
-Keywords=spyder;python;ide;ai;ml;
-SPYDER_EOF
-
-chmod +x ~/Desktop/spyder-aiml.desktop
+# Note: Desktop shortcuts creation moved to runtime user script
+# This avoids build-time directory issues
+echo "🖥️ Desktop shortcuts will be created when users run this setup script..."
 
 echo "✅ AI/ML environment setup completed!"
 echo ""

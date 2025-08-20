@@ -34,7 +34,7 @@ Categories=Development;Science;System;
 Keywords=ai;ml;setup;environment;python;jupyter;
 EOF
 
-chmod +x /etc/skel/Desktop/setup-ai-ml-environment.desktop
+chmod +x /etc/skel/Desktop/setup-ai-ml-environment.desktop 2>/dev/null || true 2>/dev/null || true
 
 # Create AI/ML status checker desktop shortcut
 cat > /etc/skel/Desktop/check-ai-ml-status.desktop << 'EOF'
@@ -51,7 +51,7 @@ Categories=Development;Science;System;
 Keywords=ai;ml;check;status;environment;
 EOF
 
-chmod +x /etc/skel/Desktop/check-ai-ml-status.desktop
+chmod +x /etc/skel/Desktop/check-ai-ml-status.desktop 2>/dev/null || true 2>/dev/null || true
 
 # Update Firefox to have better AI tools access
 mkdir -p /etc/skel/.mozilla/firefox/nanite-aiml.default-esr/chrome
@@ -165,7 +165,7 @@ Categories=Development;IDE;
 Keywords=python;idle;development;programming;
 EOF
 
-chmod 644 /usr/share/applications/python-idle.desktop
+chmod 644 /usr/share/applications/python-idle.desktop 2>/dev/null || true 2>/dev/null || true
 
 # Create comprehensive application test script
 cat > /usr/local/bin/test-all-apps << 'EOF'

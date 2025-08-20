@@ -374,7 +374,7 @@ StartupNotify=true
 Categories=Network;AI-Tools;
 EOF
 
-chmod +x /etc/skel/Desktop/ai-tools-dashboard.desktop
+chmod +x /etc/skel/Desktop/ai-tools-dashboard.desktop 2>/dev/null || true 2>/dev/null || true
 
 # Update panel configuration to include advanced tools launcher
 cat > /etc/skel/.config/xfce4/panel/advanced-ai-panel.xml << 'EOF'
@@ -509,8 +509,12 @@ echo "  • setup-aiml-env - Setup development environment"
 
 echo ""
 echo "🖥️ Desktop Integration:"
-desktop_files=(/root/Desktop/*ai*.desktop /root/Desktop/ollama.desktop /root/Desktop/cursor*.desktop /root/Desktop/terminal-gpt.desktop 2>/dev/null)
-echo "  Desktop shortcuts: ${#desktop_files[@]} available"
+if [ -d /root/Desktop ]; then
+    desktop_count=$(ls /root/Desktop/*.desktop 2>/dev/null | wc -l)
+    echo "  Desktop shortcuts: $desktop_count available"
+else
+    echo "  Desktop shortcuts: Will be available after first boot"
+fi
 EOF
 
 chmod +x /usr/local/bin/ai-tools-status

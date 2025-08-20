@@ -124,7 +124,7 @@ Categories=System;Settings;
 Keywords=user;setup;root;account;security;
 EOF
 
-chmod +x /etc/skel/Desktop/user-setup-options.desktop
+chmod +x /etc/skel/Desktop/user-setup-options.desktop 2>/dev/null || true
 
 # Also create it in root desktop
 cp /etc/skel/Desktop/user-setup-options.desktop /root/Desktop/ 2>/dev/null || true

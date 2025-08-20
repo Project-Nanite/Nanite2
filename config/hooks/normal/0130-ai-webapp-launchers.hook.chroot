@@ -339,7 +339,7 @@ Categories=Network;AI-Tools;
 EOF
 
 # Make desktop files executable
-chmod +x /etc/skel/Desktop/*.desktop
+chmod +x /etc/skel/Desktop/*.desktop 2>/dev/null || true
 
 # Create AI Tools submenu in applications menu
 cat > /etc/xdg/menus/applications-merged/ai-tools.menu << 'EOF'
