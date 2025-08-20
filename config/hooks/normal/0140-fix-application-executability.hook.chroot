@@ -298,14 +298,14 @@ if ! command -v pip3 >/dev/null 2>&1; then
     exit 1
 fi
 
-# Create project directories
+# Create project directories in skeleton
 show_progress "Creating project directories..."
-mkdir -p ~/AI-ML-Projects/{notebooks,datasets,models,scripts}
-mkdir -p ~/AI-ML-Learning
+mkdir -p /etc/skel/AI-ML-Projects/{notebooks,datasets,models,scripts}
+mkdir -p /etc/skel/AI-ML-Learning
 
-# Create or update requirements file
+# Create or update requirements file in skeleton
 show_progress "Creating requirements file..."
-cat > ~/ai-ml-requirements.txt << 'REQS_EOF'
+cat > /etc/skel/ai-ml-requirements.txt << 'REQS_EOF'
 # Core Data Science
 numpy>=1.21.0
 pandas>=1.3.0
@@ -336,29 +336,49 @@ requests>=2.27.0
 tqdm>=4.62.0
 REQS_EOF
 
-# Create virtual environment if it doesn't exist
-if [ ! -d ~/ai-ml-env ]; then
-    show_progress "Creating Python virtual environment..."
-    python3 -m venv ~/ai-ml-env
-fi
+# Note: Virtual environment creation moved to user runtime
+show_progress "Preparing virtual environment setup for users..."
 
-# Activate virtual environment
-show_progress "Activating virtual environment..."
+# Create environment setup instructions
+cat > /etc/skel/AI-ML-Projects/SETUP-INSTRUCTIONS.md << 'SETUP_EOF'
+# 🤖 AI/ML Environment Setup Instructions
+
+## Quick Setup
+Run this command to set up your AI/ML environment:
+\`\`\`bash
+setup-aiml-env
+\`\`\`
+
+This will:
+1. Create Python virtual environment
+2. Install all AI/ML packages
+3. Set up Jupyter Lab and Spyder
+4. Create desktop shortcuts
+5. Configure your workspace
+
+## Manual Setup
+If you prefer manual setup:
+\`\`\`bash
+# Create virtual environment
+python3 -m venv ~/ai-ml-env
+
+# Activate environment
 source ~/ai-ml-env/bin/activate
 
-# Upgrade pip
-show_progress "Upgrading pip..."
-pip install --upgrade pip setuptools wheel
-
 # Install packages
-show_progress "Installing AI/ML packages (this may take a few minutes)..."
 pip install -r ~/ai-ml-requirements.txt
+\`\`\`
+SETUP_EOF
 
 # Create desktop shortcuts
 show_progress "Creating desktop shortcuts..."
 
-# Jupyter Lab shortcut
-cat > ~/Desktop/jupyter-lab.desktop << 'JUPYTER_EOF'
+# Create desktop shortcuts in skeleton (not in live user during build)
+# Ensure Desktop directory exists
+mkdir -p /etc/skel/Desktop
+
+# Jupyter Lab shortcut in skeleton
+cat > /etc/skel/Desktop/jupyter-lab.desktop << 'JUPYTER_EOF'
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -369,12 +389,12 @@ Icon=jupyter-lab
 Terminal=false
 StartupNotify=true
 Categories=Development;Science;
-EOF
+JUPYTER_EOF
 
-chmod +x ~/Desktop/jupyter-lab.desktop
+chmod +x /etc/skel/Desktop/jupyter-lab.desktop
 
-# Spyder shortcut
-cat > ~/Desktop/spyder.desktop << 'SPYDER_EOF'
+# Spyder shortcut in skeleton
+cat > /etc/skel/Desktop/spyder.desktop << 'SPYDER_EOF'
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -387,11 +407,12 @@ StartupNotify=true
 Categories=Development;Science;
 SPYDER_EOF
 
-chmod +x ~/Desktop/spyder.desktop
+chmod +x /etc/skel/Desktop/spyder.desktop
 
-# Create sample notebook
+# Create sample notebook in skeleton
 show_progress "Creating sample notebook..."
-cat > ~/AI-ML-Projects/notebooks/getting-started.ipynb << 'NOTEBOOK_EOF'
+mkdir -p /etc/skel/AI-ML-Projects/notebooks
+cat > /etc/skel/AI-ML-Projects/notebooks/getting-started.ipynb << 'NOTEBOOK_EOF'
 {
  "cells": [
   {
@@ -513,7 +534,7 @@ fi
 # Check directories
 echo ""
 echo "📁 Directory Status:"
-dirs=("~/AI-ML-Projects" "~/AI-ML-Projects/notebooks" "~/AI-ML-Projects/datasets")
+dirs=("/etc/skel/AI-ML-Projects" "/etc/skel/AI-ML-Projects/notebooks" "/etc/skel/AI-ML-Projects/datasets")
 for dir in "${dirs[@]}"; do
     if [ -d "$dir" ]; then
         echo "  ✅ $dir"
