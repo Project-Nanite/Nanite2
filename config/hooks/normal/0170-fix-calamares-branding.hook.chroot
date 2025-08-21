@@ -13,8 +13,7 @@ mkdir -p /etc/calamares/branding/nanite
 
 # Create a proper slideshow QML file with AI/ML content
 cat > /usr/share/calamares/branding/nanite/slideshow/slideshow.qml << 'EOF'
-import QtQuick 2.0;
-import calamares.slideshow 1.0;
+import QtQuick 2.0
 
 Rectangle {
     id: slideshow
@@ -313,7 +312,7 @@ style:
 
 slideshow:
     api: 1
-    slideshow: "/usr/share/calamares/branding/nanite/slideshow/slideshow.qml"
+    slideshow: "slideshow/slideshow.qml"
 EOF
 
 # Create fallback slideshow if QML fails
