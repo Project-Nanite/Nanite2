@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# DEPRECATED - USE 0160-ai-tools-buildtime-install.hook.chroot INSTEAD
+# This hook is replaced by build-time installation approach
 # Advanced AI Tools Integration Hook for Nanite Linux AI/ML - FIXED VERSION
 # Creates desktop applications for advanced AI tools during BUILD TIME
 

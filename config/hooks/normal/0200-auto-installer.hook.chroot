@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# Auto Installer Hook for Nanite Linux AI/ML
+# Automatically launches Calamares installer when nanite-autoinstall boot parameter is used
+
+set -e
+
+echo "I: Setting up auto-installer functionality..."
+
+# Create the auto-installer detection script
+cat > /usr/local/bin/nanite-autoinstall-check << 'EOF'
+#!/bin/bash
+# Check if system should auto-launch installer
+
+# Check for nanite-autoinstall kernel parameter
+if grep -q "nanite-autoinstall" /proc/cmdline; then
+    echo "🚀 Nanite Auto-Installer Mode Detected"
+    echo "======================================"
+    
+    # Wait a moment for system to stabilize
+    sleep 3
+    
+    # Show installer splash
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --info --width=400 --height=200 \
+               --title="Nanite Linux Installer" \
+               --text="🚀 <b>Nanite Linux Auto-Installer</b>\n\nPreparing to install Nanite Linux with all AI/ML tools pre-configured.\n\nThe installer will launch automatically." \
+               --timeout=5 2>/dev/null || true
+    fi
+    
+    # Launch Calamares installer
+    echo "📱 Launching Calamares installer..."
+    
+    # Set installer environment
+    export QT_AUTO_SCREEN_SCALE_FACTOR=1
+    export QT_SCALE_FACTOR=1
+    
+    # Launch installer with proper display settings
+    if [ -n "$DISPLAY" ]; then
+        calamares &
+    else
+        # If no display, start X and launch installer
+        startx /usr/bin/calamares &
+    fi
+    
+    # Show installer guidance
+    sleep 5
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --info --width=500 --height=300 \
+               --title="Installation Guide" \
+               --text="📋 <b>Nanite Linux Installation</b>\n\n✅ <b>Pre-installed Features:</b>\n• AI/ML Tools (tgpt, Gemini CLI, Ollama)\n• Web AI shortcuts (ChatGPT, Claude, etc.)\n• Complete development environment\n• Nanite custom theme and icons\n\n🔧 <b>Configure:</b>\n• Username and password\n• Timezone and language\n• Disk partitioning\n\n🎯 <b>Everything else is pre-configured!</b>" \
+               --timeout=10 2>/dev/null || true &
+    fi
+    
+    exit 0
+else
+    # Normal live mode - do nothing
+    exit 0
+fi
+EOF
+
+chmod +x /usr/local/bin/nanite-autoinstall-check
+
+# Create systemd service for auto-installer
+cat > /etc/systemd/system/nanite-autoinstall.service << 'EOF'
+[Unit]
+Description=Nanite Auto-Installer Service
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/nanite-autoinstall-check
+User=root
+Environment="DISPLAY=:0"
+RemainAfterExit=yes
+
+[Install]
+WantedBy=graphical-session.target
+EOF
+
+# Enable the auto-installer service
+systemctl enable nanite-autoinstall.service
+
+# Create desktop autostart for installer (fallback)
+mkdir -p /etc/skel/.config/autostart
+cat > /etc/skel/.config/autostart/nanite-autoinstall.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Nanite Auto Installer
+Comment=Auto-launch installer if nanite-autoinstall parameter is present
+Exec=nanite-autoinstall-check
+Hidden=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Create root autostart as well
+mkdir -p /root/.config/autostart
+cp /etc/skel/.config/autostart/nanite-autoinstall.desktop /root/.config/autostart/
+
+echo "✅ Auto-installer setup completed"

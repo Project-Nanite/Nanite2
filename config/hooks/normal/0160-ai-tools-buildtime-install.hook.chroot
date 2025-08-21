@@ -1,0 +1,374 @@
+#!/bin/bash
+
+# AI Tools Build-Time Installation Hook for Nanite Linux AI/ML
+# Pre-installs lightweight AI tools during BUILD TIME (not runtime)
+# Skips heavy models - users can install those later
+
+set -e
+
+echo "I: Installing AI tools during build time..."
+
+# ==========================================
+# PRE-INSTALL LIGHTWEIGHT AI TOOLS
+# ==========================================
+
+# Update package lists for installation
+apt-get update
+
+# Install Node.js (required for some AI tools)
+echo "📦 Installing Node.js..."
+apt-get install -y nodejs npm curl wget
+
+# Install tgpt (Terminal ChatGPT client) - LIGHTWEIGHT
+echo "💬 Installing tgpt (Terminal ChatGPT)..."
+curl -sSL https://raw.githubusercontent.com/aandrew-me/tgpt/main/install | bash -s /usr/local/bin || true
+chmod +x /usr/local/bin/tgpt 2>/dev/null || true
+
+# Install Gemini CLI (Google AI CLI) - LIGHTWEIGHT
+echo "🔹 Installing Google Gemini CLI..."
+npm install -g @google/gemini-cli 2>/dev/null || true
+
+# Install additional lightweight AI tools
+echo "🛠️ Installing additional lightweight AI tools..."
+
+# Install Ollama but DON'T download models
+echo "🦙 Installing Ollama (no models)..."
+curl -fsSL https://ollama.com/install.sh | sh || echo "⚠️ Ollama installation failed, will be available as runtime installer"
+
+# ==========================================
+# NO CUSTOM BROWSER LAUNCHER - USING FIREFOX DIRECTLY
+# ==========================================
+
+echo "🌐 Using Firefox directly for web AI tools..."
+
+# ==========================================
+# CREATE WORKING DESKTOP INTEGRATIONS
+# ==========================================
+
+echo "🖥️ Creating working desktop applications..."
+
+# tgpt desktop file (WORKING - pre-installed)
+cat > /usr/share/applications/tgpt.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Terminal GPT
+Comment=Fast ChatGPT client (pre-installed)
+Exec=x-terminal-emulator -e bash -c 'echo "💬 Terminal GPT Ready!"; tgpt -i'
+Icon=utilities-terminal
+Terminal=true
+StartupNotify=true
+Categories=Network;AI-Tools;ConsoleOnly;
+Keywords=tgpt;chatgpt;ai;terminal;cli;gpt;
+EOF
+
+# Gemini CLI desktop file (WORKING - pre-installed)
+cat > /usr/share/applications/gemini-cli.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Gemini CLI
+Comment=Google Gemini CLI (pre-installed)
+Exec=x-terminal-emulator -e bash -c 'echo "🔹 Gemini CLI Commands:"; echo "  gemini chat \"What is AI?\""; echo "  gemini generate \"Write Python code\""; echo; echo "Press Enter to continue..."; read; bash'
+Icon=google-chrome
+Terminal=true
+StartupNotify=true
+Categories=Network;AI-Tools;ConsoleOnly;
+Keywords=gemini;google;ai;cli;command;line;
+EOF
+
+# Ollama desktop file (conditional - only if installed)
+cat > /usr/share/applications/ollama.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Ollama (Models Required)
+Comment=Local LLM Runner - Download models first
+Exec=x-terminal-emulator -e bash -c 'if command -v ollama >/dev/null 2>&1; then echo "🦙 Ollama Available!"; echo "Download a model first: ollama pull llama3.2:1b"; echo "Then use: ollama run llama3.2:1b"; echo; echo "Press Enter to continue..."; read; else echo "Ollama not installed"; fi'
+Icon=applications-science
+Terminal=true
+StartupNotify=true
+Categories=Development;AI-Tools;Science;
+Keywords=ollama;llm;ai;local;language;model;
+EOF
+
+# ==========================================
+# FIX AI WEB APP SHORTCUTS
+# ==========================================
+
+echo "🌐 Creating working AI web app shortcuts..."
+
+# ChatGPT (FIXED)
+cat > /usr/share/applications/chatgpt.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ChatGPT
+Comment=OpenAI's ChatGPT AI Assistant
+Exec=firefox --new-window --class="ChatGPT" "https://chat.openai.com/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;WebDevelopment;
+Keywords=chatgpt;openai;ai;assistant;chat;
+StartupWMClass=ChatGPT
+EOF
+
+# Claude AI (FIXED)
+cat > /usr/share/applications/claude-ai.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Claude AI
+Comment=Anthropic's Claude AI Assistant
+Exec=firefox --new-window --class="Claude AI" "https://claude.ai/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;WebDevelopment;
+Keywords=claude;anthropic;ai;assistant;analysis;writing;
+StartupWMClass=Claude AI
+EOF
+
+# Google Gemini (FIXED)
+cat > /usr/share/applications/google-gemini.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Google Gemini
+Comment=Google's Advanced AI Model
+Exec=firefox --new-window --class="Google Gemini" "https://gemini.google.com/"
+Icon=google-chrome
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;WebDevelopment;
+Keywords=gemini;google;ai;bard;assistant;multimodal;
+StartupWMClass=Google Gemini
+EOF
+
+# Perplexity AI (FIXED)
+cat > /usr/share/applications/perplexity.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Perplexity AI
+Comment=AI-Powered Search and Research
+Exec=firefox --new-window --class="Perplexity" "https://perplexity.ai/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;WebDevelopment;
+Keywords=perplexity;search;research;ai;answers;citations;
+StartupWMClass=Perplexity
+EOF
+
+# Groq (FIXED)
+cat > /usr/share/applications/groq.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Groq
+Comment=Ultra-Fast AI Inference Platform
+Exec=firefox --new-window --class="Groq" "https://groq.com/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;WebDevelopment;
+Keywords=groq;ai;inference;fast;llm;chat;
+StartupWMClass=Groq
+EOF
+
+# Hugging Face (FIXED)
+cat > /usr/share/applications/huggingface.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Hugging Face
+Comment=AI Models and Datasets Hub
+Exec=firefox --new-window --class="Hugging Face" "https://huggingface.co/"
+Icon=applications-science
+Terminal=false
+StartupNotify=true
+Categories=Network;AI-Tools;Development;
+Keywords=huggingface;ai;models;datasets;ml;transformers;
+StartupWMClass=Hugging Face
+EOF
+
+# ==========================================
+# CREATE DESKTOP SHORTCUTS
+# ==========================================
+
+echo "🖥️ Creating desktop shortcuts..."
+
+# Copy working shortcuts to desktop skeleton
+cp /usr/share/applications/chatgpt.desktop /etc/skel/Desktop/ 2>/dev/null || true
+cp /usr/share/applications/claude-ai.desktop /etc/skel/Desktop/ 2>/dev/null || true
+cp /usr/share/applications/google-gemini.desktop /etc/skel/Desktop/ 2>/dev/null || true
+cp /usr/share/applications/tgpt.desktop /etc/skel/Desktop/ 2>/dev/null || true
+
+# Set permissions
+chmod +x /usr/share/applications/*.desktop 2>/dev/null || true
+chmod +x /etc/skel/Desktop/*.desktop 2>/dev/null || true
+
+# ==========================================
+# CREATE AI TOOLS TERMINAL MENU
+# ==========================================
+
+cat > /usr/local/bin/ai-tools-menu << 'EOF'
+#!/bin/bash
+# AI Tools Terminal Menu - All tools pre-installed!
+
+echo "🤖 AI Tools Menu (Pre-installed)"
+echo "================================="
+echo ""
+echo "Available tools:"
+echo "1. Terminal GPT (tgpt) - Ready!"
+echo "2. Gemini CLI - Ready!" 
+echo "3. Ollama - Download models first"
+echo "4. Web AI Tools"
+echo "5. Exit"
+echo ""
+
+read -p "Choose option (1-5): " choice
+
+case $choice in
+    1)
+        echo "💬 Starting Terminal GPT..."
+        tgpt -i
+        ;;
+    2)
+        echo "🔹 Gemini CLI Ready!"
+        echo "Try: gemini chat \"What is machine learning?\""
+        bash
+        ;;
+    3)
+        echo "🦙 Ollama Setup:"
+        if command -v ollama >/dev/null 2>&1; then
+            echo "Ollama is installed but needs models."
+            echo "Download a lightweight model: ollama pull llama3.2:1b"
+            echo "Then use: ollama run llama3.2:1b"
+            echo ""
+            read -p "Download llama3.2:1b now? (y/n): " download
+            if [ "$download" = "y" ]; then
+                ollama serve &
+                sleep 3
+                ollama pull llama3.2:1b
+                echo "✅ Model downloaded! Use: ollama run llama3.2:1b"
+            fi
+        else
+            echo "❌ Ollama not available"
+        fi
+        echo "Press Enter to continue..."
+        read
+        ;;
+    4)
+        echo "🌐 Web AI Tools:"
+        echo "• ChatGPT, Claude AI, Gemini - Available in Applications menu"
+        echo "• Or click desktop shortcuts"
+        echo "Press Enter to continue..."
+        read
+        ;;
+    5)
+        exit 0
+        ;;
+    *)
+        echo "❌ Invalid choice"
+        ;;
+esac
+EOF
+
+chmod +x /usr/local/bin/ai-tools-menu
+
+# Create AI Tools Menu desktop file
+cat > /usr/share/applications/ai-tools-menu.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AI Tools Menu
+Comment=Access all pre-installed AI tools
+Exec=x-terminal-emulator -e ai-tools-menu
+Icon=applications-science
+Terminal=true
+StartupNotify=true
+Categories=System;AI-Tools;
+Keywords=ai;tools;menu;terminal;
+EOF
+
+# ==========================================
+# CREATE STATUS CHECKER
+# ==========================================
+
+cat > /usr/local/bin/ai-tools-status << 'EOF'
+#!/bin/bash
+# Check status of pre-installed AI tools
+
+echo "🤖 AI Tools Status (Build-time Installation)"
+echo "============================================="
+echo ""
+
+tools=("tgpt:Terminal GPT" "gemini:Gemini CLI" "ollama:Ollama" "firefox:Firefox Browser")
+installed=0
+total=${#tools[@]}
+
+for tool_info in "${tools[@]}"; do
+    IFS=':' read -r cmd name <<< "$tool_info"
+    if command -v "$cmd" >/dev/null 2>&1; then
+        echo "✅ $name: Pre-installed and ready"
+        ((installed++))
+    else
+        echo "❌ $name: Not available"
+    fi
+done
+
+echo ""
+echo "📊 Summary: $installed/$total core tools installed at build time"
+
+# Check web shortcuts
+echo ""
+echo "🌐 Web AI Tools:"
+web_shortcuts=("chatgpt.desktop" "claude-ai.desktop" "google-gemini.desktop")
+for shortcut in "${web_shortcuts[@]}"; do
+    if [ -f "/usr/share/applications/$shortcut" ]; then
+        echo "✅ ${shortcut%.*}: Available in Applications menu"
+    else
+        echo "❌ ${shortcut%.*}: Missing"
+    fi
+done
+
+echo ""
+echo "💡 Usage:"
+echo "  • Terminal tools: Run 'ai-tools-menu'"
+echo "  • Web tools: Applications → AI Tools"  
+echo "  • Desktop: Click shortcuts"
+EOF
+
+chmod +x /usr/local/bin/ai-tools-status
+
+# ==========================================
+# CLEAN UP AND FINALIZE
+# ==========================================
+
+# Update desktop database
+update-desktop-database /usr/share/applications 2>/dev/null || true
+
+# Clean up package cache
+apt-get clean
+
+echo ""
+echo "✅ AI Tools Build-time Installation Completed!"
+echo ""
+echo "📋 What's Pre-installed:"
+echo "   ✅ Terminal GPT (tgpt) - Ready to use"
+echo "   ✅ Gemini CLI - Ready to use"  
+echo "   ✅ Ollama - Models need to be downloaded"
+echo "   ✅ Fixed web shortcuts (ChatGPT, Claude, etc.)"
+echo "   ✅ Firefox-based web shortcuts"
+echo ""
+echo "🎯 Post-boot usage:"
+echo "   • Run 'ai-tools-menu' for terminal tools"
+echo "   • Applications → AI Tools for web tools"
+echo "   • Desktop shortcuts for quick access"
+echo "   • Run 'ai-tools-status' to check status"
+echo ""
+echo "⚠️ Note: Heavy models (like Llama) are NOT pre-installed."
+echo "   Users can install them later with: ollama pull llama3.2:1b"

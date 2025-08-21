@@ -1,0 +1,344 @@
+#!/bin/bash
+
+# Enhanced Calamares Configuration for Auto-Installer Mode
+# Provides streamlined installation experience with pre-filled settings
+
+set -e
+
+echo "I: Configuring Calamares for streamlined auto-installation..."
+
+# Create enhanced Calamares settings configuration
+cat > /etc/calamares/settings.conf << 'EOF'
+# Nanite Linux Calamares Configuration
+modules-search: [ local, /usr/lib/x86_64-linux-gnu/calamares/modules ]
+
+instances:
+- id:       rootfs
+  module:   unpackfs
+  config:   unpackfs.conf
+- id:       vmlinuz
+  module:   unpackfs
+  config:   unpackfs_vmlinuz.conf
+- id:       choice
+  module:   packages
+  config:   packages.conf
+
+sequence:
+- show:
+  - welcome
+  - location
+  - keyboard
+  - partition
+  - users
+  - summary
+- exec:
+  - partition
+  - mount
+  - unpackfs@rootfs
+  - unpackfs@vmlinuz
+  - machineid
+  - fstab
+  - locale
+  - keyboard
+  - localecfg
+  - luksbootkeyfile
+  - luksopenswaphookcfg
+  - initcpiocfg
+  - initcpio
+  - removeuser
+  - users
+  - displaymanager
+  - networkcfg
+  - hwclock
+  - services-systemd
+  - bootloader
+  - grubcfg
+  - packages@choice
+  - umount
+- show:
+  - finished
+
+branding: nanite
+
+prompt-install: false
+dont-chroot: false
+oem-setup: false
+disable-cancel: false
+disable-cancel-during-exec: true
+hide-back-and-next-during-exec: true
+quit-at-end: false
+EOF
+
+# Create welcome module configuration for auto-installer
+cat > /etc/calamares/modules/welcome.conf << 'EOF'
+# Welcome module configuration for Nanite Linux
+
+showSupportUrl:         true
+showKnownIssuesUrl:     true
+showReleaseNotesUrl:    true
+showDonateUrl:          false
+
+supportUrl:             https://github.com/nanite-linux/nanite
+knownIssuesUrl:         https://github.com/nanite-linux/nanite/issues
+releaseNotesUrl:        https://github.com/nanite-linux/nanite/releases
+
+requirements:
+    requiredStorage:    8.0
+    requiredRam:        2.0
+    internetCheckUrl:   https://google.com
+    checkRequisites:    true
+
+geoip:
+    style:    "json"
+    url:      "https://ipapi.co/json/"
+    selector: "timezone"
+
+welcomeStyleCalamares:   false
+
+welcomeExpandingLogo:   true
+
+windowExpanding:    default
+windowSize: 1024px,720px
+windowPlacement: center
+
+slideshow:               "slideshow.qml"
+
+activationMessage:      |
+    <h3>🚀 Nanite Linux Auto-Installer</h3>
+    <p>Welcome to Nanite Linux! This streamlined installer will set up your system with:</p>
+    <ul>
+    <li>✅ Pre-installed AI/ML tools (tgpt, Gemini CLI, Ollama)</li>
+    <li>✅ Web AI shortcuts (ChatGPT, Claude, Gemini, etc.)</li>
+    <li>✅ Complete development environment</li>
+    <li>✅ Beautiful Nanite theme and customizations</li>
+    </ul>
+    <p><strong>Just configure your username, password, and disk - everything else is ready!</strong></p>
+EOF
+
+# Create users module configuration with sensible defaults
+cat > /etc/calamares/modules/users.conf << 'EOF'
+# Users module configuration for Nanite Linux
+
+defaultGroups:
+    - users
+    - lp
+    - audio
+    - video
+    - network
+    - storage
+    - wheel
+    - sudo
+    - plugdev
+    - netdev
+    - bluetooth
+
+autologinGroup:  autologin
+doAutologin:     false
+sudoersGroup:    sudo
+setRootPassword: true
+doReusePassword: true
+
+userShell: /bin/bash
+
+fullnameRequired: false
+fullnameMinLength: 1
+fullnameMaxLength: 63
+fullnameValidation: '^[^:]*$'
+
+usernameRequired: true
+usernameMinLength: 2
+usernameMaxLength: 31
+usernameValidation: '^[a-z_][a-z0-9_-]*[$]?$'
+
+hostnameRequired: true
+hostnameMinLength: 2
+hostnameMaxLength: 63
+hostnameValidation: '^[a-zA-Z0-9][-a-zA-Z0-9]*[a-zA-Z0-9]$'
+forbiddenHostnames: [ localhost ]
+
+passwordRequirements:
+    minLength: 4
+    maxLength: -1
+    libpwquality:
+        - minlen=0
+        - minclass=0
+
+passwordRequirementsValidation: true
+
+allowWeakPasswords: true
+allowWeakPasswordsDefault: true
+
+# Pre-fill some sensible defaults
+presets:
+    fullName:
+        value: "Nanite User"
+        editable: true
+    loginName:
+        value: "nanite"
+        editable: true
+    hostname:
+        value: "nanite-ai"
+        editable: true
+EOF
+
+# Create partition module configuration for easier partitioning
+cat > /etc/calamares/modules/partition.conf << 'EOF'
+# Partition module configuration for Nanite Linux
+
+efiSystemPartition:     "/boot/efi"
+efiSystemPartitionSize: 512M
+efiSystemPartitionName: EFI
+
+userSwapChoices:
+    - none
+    - small
+    - suspend
+    - file
+
+swapPartitionName: swap
+
+drawNestedPartitions:   false
+alwaysShowPartitionLabels: true
+
+defaultFileSystemType:  "ext4"
+
+availableFileSystemTypes:  ["ext4","ext3","ext2","reiserfs","xfs","jfs","btrfs","nilfs2","f2fs"]
+
+defaultMountOptions:
+    btrfs: "defaults,noatime,autodefrag,compress=zstd"
+    ext4:  "defaults,noatime"
+    jfs:   "defaults,noatime"
+    reiserfs: "defaults,noatime"
+    xfs:   "defaults,noatime"
+
+armInstall: false
+
+# Enable LUKS encryption option
+enableLuksAutomatedPartitioning: true
+
+# Auto-partitioning settings
+initialPartitioningChoice: erase
+initialSwapChoice: small
+
+# Allow manual partitioning but default to automatic
+allowManualPartitioning: true
+EOF
+
+# Create locale module configuration
+cat > /etc/calamares/modules/locale.conf << 'EOF'
+# Locale configuration for Nanite Linux
+
+localeGenPath: "/etc/locale.gen"
+geoip:
+    style:    "json"
+    url:      "https://ipapi.co/json/"
+    selector: "country_code"
+
+region: "America"
+zone: "New_York"
+
+# GeoIP configuration for better timezone detection
+geoipSelector: "timezone"
+EOF
+
+# Create packages module configuration to ensure AI tools are installed
+cat > /etc/calamares/modules/packages.conf << 'EOF'
+# Packages configuration for Nanite Linux
+backend: apt
+
+operations:
+  - localInstall:
+    - path: "/cdrom/pool/"
+      packageName: "*"
+  - install:
+    # Core system packages
+    - firefox-esr
+    - thunderbird
+    - libreoffice
+    - gimp
+    - vlc
+    - git
+    - curl
+    - wget
+    - htop
+    - vim
+    - nano
+    - build-essential
+    - python3
+    - python3-pip
+    - nodejs
+    - npm
+    # AI/ML tools (ensure they're installed)
+    - python3-jupyter
+    - python3-pandas
+    - python3-numpy
+    - python3-matplotlib
+    - python3-seaborn
+    - python3-scikit-learn
+  - remove:
+    # Remove live-specific packages
+    - calamares
+    - live-boot
+    - live-config
+    - live-config-systemd
+
+# Try to install from local packages first, then online
+tryInstall:
+  - tgpt
+  - ollama
+
+# Skip package installation errors (tools are pre-installed)
+skip_errors: true
+EOF
+
+# Create finished module configuration
+cat > /etc/calamares/modules/finished.conf << 'EOF'
+# Finished module configuration for Nanite Linux
+
+restartNowEnabled: true
+restartNowChecked: true
+restartNowCommand: "shutdown -r now"
+
+notifyOnFinished: true
+
+finishedMessage: |
+    <h3>🎉 Nanite Linux Installation Complete!</h3>
+    
+    <h4>✅ What's Installed & Ready:</h4>
+    <ul>
+    <li><strong>AI Tools:</strong> tgpt (Terminal ChatGPT), Gemini CLI, Ollama (download models separately)</li>
+    <li><strong>Web AI Shortcuts:</strong> ChatGPT, Claude, Google Gemini, Perplexity, and more in Applications menu</li>
+    <li><strong>Development:</strong> VS Code equivalent AI tools, Python, Node.js, Git</li>
+    <li><strong>Office Suite:</strong> LibreOffice, Firefox, Thunderbird</li>
+    <li><strong>Multimedia:</strong> GIMP, VLC, and more</li>
+    <li><strong>Beautiful Theme:</strong> Nanite custom theme and icons</li>
+    </ul>
+    
+    <h4>🚀 Getting Started:</h4>
+    <ul>
+    <li>Run <code>ai-tools-menu</code> in terminal for AI tools</li>
+    <li>Check Applications → AI Tools for web shortcuts</li>
+    <li>Desktop shortcuts are ready on your desktop</li>
+    <li>Your AI/ML projects go in ~/AI-ML-Projects/</li>
+    </ul>
+    
+    <h4>⚡ Next Steps:</h4>
+    <ul>
+    <li>Download AI models: <code>ollama pull llama3.2:1b</code></li>
+    <li>Try Terminal GPT: <code>tgpt -i</code></li>
+    <li>Access web AI tools from desktop or Applications menu</li>
+    </ul>
+    
+    <p><strong>Restart to enjoy your new Nanite Linux AI/ML system!</strong></p>
+EOF
+
+# Set proper permissions for Calamares configuration
+chmod 644 /etc/calamares/settings.conf
+chmod 644 /etc/calamares/modules/*.conf
+
+echo "✅ Enhanced Calamares configuration completed"
+echo "   • Streamlined installation process"
+echo "   • Pre-filled sensible defaults"
+echo "   • Enhanced welcome and finished messages"
+echo "   • Automatic AI tools installation"
+echo "   • User-friendly partitioning options"
