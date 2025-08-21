@@ -348,8 +348,7 @@ chmod +x /usr/local/bin/ai-tools-status
 # CLEAN UP AND FINALIZE
 # ==========================================
 
-# Update desktop database
-update-desktop-database /usr/share/applications 2>/dev/null || true
+# Desktop database will be updated by final hook
 
 # Clean up package cache
 apt-get clean

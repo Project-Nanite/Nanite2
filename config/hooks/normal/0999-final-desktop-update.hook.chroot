@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Final Desktop Database Update Hook - RUNS LAST
+# Updates desktop database only once at the end to avoid redundant calls
+
+set -e
+
+echo "I: Final desktop database update..."
+
+# Update desktop database once for all applications
+echo "🔄 Final desktop database update (one time only)..."
+update-desktop-database /usr/share/applications 2>/dev/null || true
+echo "✅ Desktop database updated successfully!"
+
+# Update icon cache
+echo "🖼️ Updating icon cache..."
+gtk-update-icon-cache /usr/share/icons/hicolor 2>/dev/null || true
+gtk-update-icon-cache /usr/share/icons/Nanite-Icons 2>/dev/null || true
+echo "✅ Icon cache updated!"
+
+# Final permissions check
+echo "🔐 Final permissions check..."
+find /usr/share/applications -name "*.desktop" -exec chmod 644 {} \; 2>/dev/null || true
+find /etc/skel/Desktop -name "*.desktop" -exec chmod +x {} \; 2>/dev/null || true
+echo "✅ Permissions set correctly!"
+
+echo "🎉 All desktop integrations finalized!"

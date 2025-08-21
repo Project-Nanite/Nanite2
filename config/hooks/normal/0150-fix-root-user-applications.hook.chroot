@@ -380,7 +380,7 @@ if [ ! -d /home/nanite-user ]; then
 fi
 
 # Update desktop database
-update-desktop-database /usr/share/applications 2>/dev/null || true
+# Desktop database will be updated by final hook
 
 # Fix permissions
 chmod 755 /root/Desktop/*.desktop 2>/dev/null || true
