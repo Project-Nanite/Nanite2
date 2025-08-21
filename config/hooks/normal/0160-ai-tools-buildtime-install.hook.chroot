@@ -21,19 +21,19 @@ apt-get install -y nodejs npm curl wget
 
 # Install tgpt (Terminal ChatGPT client) - LIGHTWEIGHT
 echo "💬 Installing tgpt (Terminal ChatGPT)..."
-curl -sSL https://raw.githubusercontent.com/aandrew-me/tgpt/main/install | bash -s /usr/local/bin || true
+timeout 60 curl -sSL https://raw.githubusercontent.com/aandrew-me/tgpt/main/install | bash -s /usr/local/bin || echo "⚠️ tgpt install failed - will be available as runtime option"
 chmod +x /usr/local/bin/tgpt 2>/dev/null || true
 
 # Install Gemini CLI (Google AI CLI) - LIGHTWEIGHT
 echo "🔹 Installing Google Gemini CLI..."
-npm install -g @google/gemini-cli 2>/dev/null || true
+timeout 120 npm install -g @google/gemini-cli 2>/dev/null || echo "⚠️ Gemini CLI install failed - will be available as runtime option"
 
 # Install additional lightweight AI tools
 echo "🛠️ Installing additional lightweight AI tools..."
 
 # Install Ollama but DON'T download models
 echo "🦙 Installing Ollama (no models)..."
-curl -fsSL https://ollama.com/install.sh | sh || echo "⚠️ Ollama installation failed, will be available as runtime installer"
+timeout 180 bash -c 'curl -fsSL https://ollama.com/install.sh | sh' || echo "⚠️ Ollama installation failed, will be available as runtime installer"
 
 # ==========================================
 # NO CUSTOM BROWSER LAUNCHER - USING FIREFOX DIRECTLY

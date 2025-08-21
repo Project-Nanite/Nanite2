@@ -68,33 +68,7 @@ window[class="Perplexity"] #main-window {
 }
 EOF
 
-# Create system-wide desktop application updates script
-cat > /usr/local/bin/update-desktop-database << 'EOF'
-#!/bin/bash
-# Update desktop database for Nanite AI/ML applications
-
-echo "🔄 Updating desktop application database..."
-
-# Update desktop database
-if command -v update-desktop-database >/dev/null 2>&1; then
-    # Desktop database will be updated by final hook
-    update-desktop-database ~/.local/share/applications 2>/dev/null || true
-fi
-
-# Update icon cache
-if command -v gtk-update-icon-cache >/dev/null 2>&1; then
-    gtk-update-icon-cache /usr/share/icons/hicolor 2>/dev/null || true
-fi
-
-# Update MIME database
-if command -v update-mime-database >/dev/null 2>&1; then
-    update-mime-database /usr/share/mime 2>/dev/null || true
-fi
-
-echo "✅ Desktop database updated successfully!"
-EOF
-
-chmod +x /usr/local/bin/update-desktop-database
+# Desktop database update removed - will be handled by final hook
 
 # Ensure Python packages will be available
 echo "🐍 Setting up Python package environment..."

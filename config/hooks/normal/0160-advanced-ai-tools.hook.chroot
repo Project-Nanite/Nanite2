@@ -445,9 +445,7 @@ main_installer() {
     install_gemini_cli || echo "⚠️ Gemini CLI installation failed"
     install_cursor_ai || echo "⚠️ Cursor AI installation failed"
     
-    # Update desktop database
-    if command -v update-desktop-database >/dev/null 2>&1; then
-        # Desktop database will be updated by final hook
+    # Desktop database will be updated by final hook
     fi
     
     echo ""
